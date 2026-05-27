@@ -81,7 +81,7 @@ class Player(pygame.sprite.Sprite, PlatformCollider):
             self.knockback()
         else:
             self.collide_enemy_h()
-        self.velx = min(max(-500, self.velx + self.accelx), self.top_speed)
+        self.velx = min(max(-self.top_speed, self.velx + self.accelx), self.top_speed)
 
         self.rect.x += self.dirx * self.velx * dt
         
@@ -225,12 +225,12 @@ class EnemySpawner(pygame.sprite.Group):
             self.set_spawn_timer()
 
 class Platform(pygame.sprite.Sprite):
+    color_collected = (100,200,100)
     def __init__(self, *groups, size:tuple=(100,50), pos:tuple=(0,0), color=(0,50,0)):
         super().__init__(*groups)
         self.size = size
         self.pos = pos
         self.color = color
-        self.color_collected = (100,200,100)
         self.is_collected = False
         self.despawn_timer = 3
         
@@ -288,7 +288,7 @@ player_spawner = PlayerSpawner(Player())
 enemy_spawner = EnemySpawner()
 enemy_spawner.spawn_enemies()
 
-ground = pygame.sprite.GroupSingle(Platform(size=(screen.get_size()[0],screen.get_size()[1]//5), pos=((screen.get_size()[0]//2,screen.get_size()[1]))), )
+ground = pygame.sprite.GroupSingle(Platform(size=(screen.get_size()[0],screen.get_size()[1]//5), pos=((screen.get_size()[0]//2,screen.get_size()[1])), color=Platform.color_collected))
 platforms = Platform_Spawner()
 platforms.add(Platform(pos=(100,600)))
 platforms.add(Platform(pos=(400,700)))
