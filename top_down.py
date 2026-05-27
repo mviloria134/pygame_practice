@@ -27,17 +27,14 @@ class PlayArea:
         self.surf = pygame.Surface((PLAY_AREA_W, PLAY_AREA_H))
         self.rect = self.surf.get_rect(bottomleft=(0,PLAY_AREA_H))
         self.surf.fill((0,0,50))
-    
-    def is_in_bounds(self, entity):
-        return 
         
     def display(self, display_surf:pygame.Surface):
         display_surf.blit(self.surf, self.rect)
 
 class Player(pygame.sprite.Sprite):
     size = (60,60)
-    world_coords = pygame.Rect((0,0), size)
-    world_coords.center = (screen.get_size()[0]//2 ,screen.get_size()[1]//2)
+    # world_coords = pygame.Rect((0,0), size)
+    # world_coords.center = (screen.get_size()[0]//2 ,screen.get_size()[1]//2)
     walk1 = pygame.transform.scale(pygame.image.load('player-walk-1.png').convert_alpha(), size)
     walk2 = pygame.transform.scale(pygame.image.load('player-walk-2.png').convert_alpha(), size)
     stand = pygame.transform.scale(pygame.image.load('player-sprite.png').convert_alpha(), size)
@@ -90,26 +87,9 @@ class Player(pygame.sprite.Sprite):
             self.is_walking = True
         
     def move(self):
-        self.world_coords.x += self.velx * dt
-        self.world_coords.y += self.vely * dt
-        if self.world_coords.left < 0 or self.world_coords.right > PLAY_AREA_W:
-            if self.velx < 0:
-                self.world_coords.left = 0
-            elif self.velx > 0:
-                self.world_coords.right = PLAY_AREA_W
-            self.velx = 0
-        else:
-            self.rect.x += self.velx * dt
-        if self.world_coords.top < 0 or self.world_coords.bottom > PLAY_AREA_H:
-            if self.vely < 0:
-                self.world_coords.top = 0
-            elif self.vely > 0:
-                self.world_coords.bottom = PLAY_AREA_H
-            self.vely = 0
-        else:
-            self.rect.y += self.vely * dt
-        # print(f'world: ({self.world_coords.x}, {self.world_coords.y}) screen: ({self.rect.x}, {self.rect.y})')
-        
+        self.rect.x += self.velx * dt
+        self.rect.y += self.vely * dt
+        self.rect.clamp_ip(world.rect)
         
         if self.is_walking:
             self.animate_walk()
@@ -133,7 +113,7 @@ class Enemy(pygame.sprite.Sprite):
         self.image = pygame.image.load('enemy-sprite.png').convert_alpha()
         self.image = pygame.transform.scale_by(self.image, 0.25)
         self.rect = self.image.get_rect(center=(x,y))
-        
+        self.rect.clamp_ip(world.rect)
 
         self.damage = 1
         self.velx = random.choice([speed, -speed])
@@ -148,7 +128,10 @@ class Enemy(pygame.sprite.Sprite):
             else:
                 self.rect.right = self.home[0] + self.patrol_radius
             self.velx = -self.velx
+        
         self.rect.x += self.velx * dt
+        if not world.rect.contains(self.rect):
+            self.velx = -self.velx
     
     def update(self):
         self.move()
@@ -158,15 +141,17 @@ class BounceEnemy(pygame.sprite.Sprite):
         super().__init__(*groups)
         
 class Item(pygame.sprite.Sprite):
+    extra_spawn_area = 100
     def __init__(self, x=None, y=None):
         super().__init__()
         self.image = pygame.image.load('item-sprite.png').convert_alpha()
         self.image = pygame.transform.scale_by(self.image, 0.25)
         if x is None:
-            x = random.randint(0, screen.get_size()[0])
+            x = random.randint(0-self.extra_spawn_area, screen.get_size()[0]+self.extra_spawn_area)
         if y is None:
-            y = random.randint(0, screen.get_size()[1])
+            y = random.randint(0-self.extra_spawn_area, screen.get_size()[1]+self.extra_spawn_area)
         self.rect = self.image.get_rect(center=(x,y))
+        self.rect.clamp_ip(world.rect)
 
 class ItemSpawner(pygame.sprite.Group):
     def __init__(self, *sprites):
