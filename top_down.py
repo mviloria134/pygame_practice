@@ -107,7 +107,7 @@ class Player(pygame.sprite.Sprite):
         self.keyboard_input()
         self.move()
 
-class Enemy(pygame.sprite.Sprite):
+class PatrolEnemy(pygame.sprite.Sprite):
     def __init__(self, speed=100, x=screen.get_size()[0] // 4, y=screen.get_size()[1] //4):
         super().__init__()
         self.image = pygame.image.load('enemy-sprite.png').convert_alpha()
@@ -137,8 +137,31 @@ class Enemy(pygame.sprite.Sprite):
         self.move()
 
 class BounceEnemy(pygame.sprite.Sprite):
-    def __init__(self, *groups):
+    movement_speed = 100
+    damage = 1
+    def __init__(self, *groups, x=random.randint(0, SCREEN_W), y=random.randint(0,SCREEN_H)):
         super().__init__(*groups)
+        
+        self.image = pygame.image.load('enemy-sprite.png').convert_alpha()
+        self.image = pygame.transform.scale_by(self.image, 0.4)
+        self.rect = self.image.get_rect(x=x, y=y)
+        
+        self.dirx = random.choice([-1,1])
+        self.diry = random.choice([-1,1])
+        
+    def move(self):
+        self.rect.x += self.dirx * self.movement_speed * dt
+        self.rect.y += self.diry * self.movement_speed * dt
+        
+        if self.rect.left < world.rect.left or self.rect.right > world.rect.right:
+            self.dirx = -self.dirx 
+            
+        if self.rect.top < world.rect.top or self.rect.bottom > world.rect.bottom:
+            self.diry = -self.diry
+    
+    def update(self):
+        self.move()
+        
         
 class Item(pygame.sprite.Sprite):
     extra_spawn_area = 100
@@ -190,7 +213,8 @@ class Camera:
                 item.rect.x -= p.sprite.velx * dt
                 
         for enemy in enemies:
-            enemy.home[0] -= p.sprite.velx * dt
+            if isinstance(enemy, PatrolEnemy):
+                enemy.home[0] -= p.sprite.velx * dt
             enemy.rect.x -= p.sprite.velx * dt
         
         world.rect.x -= p.sprite.velx * dt
@@ -203,7 +227,8 @@ class Camera:
                 item.rect.y -= p.sprite.vely * dt
                 
         for enemy in enemies:
-            enemy.home[1] -= p.sprite.vely * dt
+            if isinstance(enemy, PatrolEnemy):
+                enemy.home[1] -= p.sprite.vely * dt
             enemy.rect.y -= p.sprite.vely * dt
             
         world.rect.y -= p.sprite.vely * dt
@@ -312,7 +337,11 @@ while not done:
     
     # spawn enemies
     while enemies.__len__() < max_enemies:
-        enemies.add(Enemy(x=random.randint(0,PLAY_AREA_W),y=random.randint(0,SCREEN_H)))
+        enemy_type = random.choice([0,1])
+        if enemy_type == 0:
+            enemies.add(PatrolEnemy(x=random.randint(0,PLAY_AREA_W),y=random.randint(0,SCREEN_H)))
+        if enemy_type == 1:
+            enemies.add(BounceEnemy())
     
     # update functions
     p.update()
