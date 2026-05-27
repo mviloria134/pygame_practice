@@ -3,12 +3,10 @@ import random
 import pygame
 
 # game initilization
-SCREEN_W = 1200
-SCREEN_H = 1000
-screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
 grid_size = 20
-grid_max_x = SCREEN_W//grid_size
-grid_max_y = SCREEN_H//grid_size
+grid_max_x = 60
+grid_max_y = 50
+screen = pygame.display.set_mode((grid_max_x*grid_size, grid_max_y*grid_size))
 
 # fonts
 pygame.font.init()
@@ -20,7 +18,7 @@ GAME_OVER = pygame.USEREVENT + 2
 
 # util funcs
 def is_not_in_bounds(sprite):
-    return sprite.rect.left < 0 or sprite.rect.right > SCREEN_W or sprite.rect.top < 0 or sprite.rect.bottom > SCREEN_H
+    return sprite.rect.left < 0 or sprite.rect.right > grid_max_x*grid_size or sprite.rect.top < 0 or sprite.rect.bottom > grid_max_y*grid_size
 
 # classes
 class Direction(Enum):
@@ -33,8 +31,6 @@ class Snake(pygame.sprite.Sprite):
     def __init__(self, *groups):
         super().__init__(*groups)
         self.size = grid_size
-        self.speed = 10
-        self.grid_pos = [grid_max_x//2, grid_max_y//2]
         
         self.direction = Direction.RIGHT
         
@@ -60,16 +56,14 @@ class Snake(pygame.sprite.Sprite):
     def move(self):
         match self.direction:
             case Direction.UP:
-                self.grid_pos[1] -= 1
+                self.rect.y -= grid_size
             case Direction.DOWN:
-                self.grid_pos[1] += 1
+                self.rect.y += grid_size
             case Direction.LEFT:
-                self.grid_pos[0] -= 1
+                self.rect.x -= grid_size
             case Direction.RIGHT:
-                self.grid_pos[0] += 1
-        
-        self.rect.x = self.grid_pos[0] * grid_size
-        self.rect.y = self.grid_pos[1] * grid_size
+                self.rect.x += grid_size
+
         # check if in bounds
         if is_not_in_bounds(self):
             pygame.event.post(pygame.event.Event(GAME_OVER))
@@ -104,9 +98,7 @@ class Apple(pygame.sprite.Sprite):
         
         self.image = pygame.image.load('enemy-sprite.png')
         self.image = pygame.transform.scale(self.image, (self.size,self.size))
-        self.rect = self.image.get_rect(topleft=(random.randint(0,grid_max_x)*grid_size, random.randint(0,grid_max_y)*grid_size))
-        if is_not_in_bounds(self):
-            self.rect = self.image.get_rect(topleft=(random.randint(0,grid_max_x)*grid_size, random.randint(0,grid_max_y)*grid_size))
+        self.rect = self.image.get_rect(topleft=(random.randint(0,grid_max_x-1)*grid_size, random.randint(0,grid_max_y-1)*grid_size))
 
 class Scoreboard:
     def __init__(self):
