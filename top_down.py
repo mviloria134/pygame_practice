@@ -13,11 +13,24 @@ clock = pygame.time.Clock()
 framerate = 60
 dt = clock.tick(framerate) / 1000
 
+# colors
+WHITE = (255,255,255)
+
+
+# events
+UPDATE_TIMER = pygame.USEREVENT + 1
+pygame.time.set_timer(UPDATE_TIMER, 1000)
+COLLECT_ITEM = pygame.USEREVENT + 2
+
 class PlayArea:
     def __init__(self):
         self.surf = pygame.Surface((PLAY_AREA_W, PLAY_AREA_H))
         self.rect = self.surf.get_rect(bottomleft=(0,PLAY_AREA_H))
         self.surf.fill((0,0,50))
+    
+    def is_in_bounds(self, entity):
+        return 
+        
     def display(self, display_surf:pygame.Surface):
         display_surf.blit(self.surf, self.rect)
 
@@ -110,9 +123,6 @@ class Player(pygame.sprite.Sprite):
         if self.health < 1:
             self.kill()
     
-    def collide_with_item(self, item):
-        print('got an item!')
-    
     def update(self):
         self.keyboard_input()
         self.move()
@@ -132,13 +142,6 @@ class Enemy(pygame.sprite.Sprite):
         self.home = [x,y]
         
     def move(self):
-        # check boundaries
-        # if self.rect.left <= self.home[0] - self.patrol_radius or self.rect.right >= self.home[0] + self.patrol_radius:
-        #     if self.velx < 0:
-        #         self.rect.left = self.home[0] - self.patrol_radius
-        #     else:
-        #         self.rect.right = self.home[0] + self.patrol_radius
-        #     self.velx = -self.velx
         if self.rect.left <= self.home[0] - self.patrol_radius or self.rect.right >= self.home[0] + self.patrol_radius:
             if self.velx < 0:
                 self.rect.left = self.home[0] - self.patrol_radius
@@ -243,6 +246,49 @@ class Camera:
     def display(self, surf:pygame.Surface):
         surf.blit(self.surf, (self.marginx,self.marginy))
 
+class HealthBar:
+    size = 20
+    def __init__(self, entity, attached_to_entity = False):
+        self.entity = entity
+        self.image = self.entity.image
+        self.image = pygame.transform.scale(self.image, (self.size,self.size))
+        self.attached_to_entity = attached_to_entity
+        if self.attached_to_entity:
+            self.rect = pygame.Rect(0,0,self.size*self.entity.health,self.size)
+            self.rect.midbottom = entity.rect.midtop
+        
+        self.outer_padding_x = 10
+        self.outer_padding_y = 10
+        self.inner_padding = 10
+        
+    def display(self):
+        if not self.attached_to_entity:
+            y = 0
+            for i in range(self.entity.health):
+                screen.blit(self.image, (((self.size + self.inner_padding) * i) + self.outer_padding_x, y+self.outer_padding_y))
+        else:
+            self.rect.midbottom = self.entity.rect.midtop
+            for i in range(self.entity.health):
+                screen.blit(self.image, (self.rect.left + (i * self.size), self.rect.y-self.outer_padding_y))
+
+class TimerDisplay:
+    def __init__(self, initial_seconds=10, font_size=30):
+        self.time_remaining = initial_seconds
+        self.font = pygame.font.SysFont('MultiType Pixel', font_size)
+        self.time_text = self.font.render(str(self.time_remaining), False, WHITE)
+        self.rect = self.time_text.get_rect(topright=(screen.get_size()[0],0))
+        
+    def add_seconds(self, seconds):
+        self.time_remaining += seconds
+        self.update_text()
+    
+    def update_text(self):
+        self.time_text = self.font.render(str(self.time_remaining), False, WHITE)
+        self.rect = self.time_text.get_rect(topright=(screen.get_size()[0],0))
+    
+    def display(self):
+        screen.blit(self.time_text, self.rect)
+    
 # initialize player group
 p = pygame.sprite.GroupSingle()
 p.add(Player())
@@ -259,20 +305,21 @@ items = ItemSpawner()
 # initialize camera
 camera = Camera()
 
-world = PlayArea()
+# UI Elements
+player_healthbar = HealthBar(p.sprite)
+game_timer = TimerDisplay()
 
-score = 0
-UPDATE_SCORE = pygame.USEREVENT + 1
-pygame.time.set_timer(UPDATE_SCORE, 1000)
+world = PlayArea()
 
 while not done: 
     # event checks
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
-        # if event.type == UPDATE_SCORE:
-        #     score += 1
-        #     print(score)
+        if event.type == UPDATE_TIMER:
+            game_timer.add_seconds(-1)
+        if event.type == COLLECT_ITEM:
+            game_timer.add_seconds(5)
     
     #draw
     # bg
@@ -295,13 +342,15 @@ while not done:
             # reset respawn countdown
             respawn_countdown = respawn_timer
             p.add(Player())
+            player_healthbar = HealthBar(p.sprite)
+            
     else:
         camera.pan()
         # collision checks
         # with items
         collisions = pygame.sprite.spritecollide(p.sprite, items, True)
         for item in collisions:
-            p.sprite.collide_with_item(item)
+            pygame.event.post(pygame.event.Event(COLLECT_ITEM))
             
         # with enemies
         collisions = pygame.sprite.spritecollide(p.sprite, enemies, True)
@@ -316,6 +365,9 @@ while not done:
     enemies.draw(screen)
     items.draw(screen)
     
+    # UI
+    player_healthbar.display()
+    game_timer.display()
     
     # update display
     pygame.display.flip()
