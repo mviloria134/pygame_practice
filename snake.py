@@ -57,7 +57,7 @@ class Snake(pygame.sprite.Sprite):
         
         self.snake_body = [[self.rect.x,self.rect.y]]
 
-    def keyboard_input(self):
+    def handle_keyboard_input(self):
         keys = pygame.key.get_pressed()
         
         if keys[pygame.K_w] and self.direction != Direction.DOWN:
@@ -69,7 +69,7 @@ class Snake(pygame.sprite.Sprite):
         elif keys[pygame.K_d] and self.direction != Direction.LEFT:
             self.direction = Direction.RIGHT
     
-    def move(self):
+    def change_direction(self):
         match self.direction:
             case Direction.UP:
                 self.rect.y -= grid_size
@@ -79,32 +79,40 @@ class Snake(pygame.sprite.Sprite):
                 self.rect.x -= grid_size
             case Direction.RIGHT:
                 self.rect.x += grid_size
-
-        # check if in bounds
+    
+    def check_if_in_bounds(self):
         if is_not_in_bounds(self):
             pygame.event.post(pygame.event.Event(GAME_OVER))
-        
-        self.snake_body.insert(0, [self.rect.x, self.rect.y])
-        
-        if pygame.sprite.spritecollide(self, apple_group, True):
+    
+    def did_collect_apple(self):
+        return pygame.sprite.spritecollide(self, apple_group, True)
+    
+    def update_body(self):
+        if self.did_collect_apple():
             pygame.event.post(pygame.event.Event(SPAWN_APPLE))
         else:
             self.snake_body.pop()
-            
+        self.snake_body.insert(0, [self.rect.x, self.rect.y])
+        
     def collide_with_self(self):
         if len(self.snake_body) > 0:
             for part in self.snake_body[1:]:
                 if self.rect.x == part[0] and self.rect.y == part[1]:
                     pygame.event.post(pygame.event.Event(GAME_OVER))
+    
+    def move(self):
+        self.handle_keyboard_input()
+        self.change_direction()
+        self.check_if_in_bounds()
+        self.update_body()
+        self.collide_with_self()
         
     def display(self):
         for part in self.snake_body:
             screen.blit(self.image, part)
             
     def update(self):
-        self.keyboard_input()
         self.move()
-        self.collide_with_self()
 
 class Apple(pygame.sprite.Sprite):
     score = 10
