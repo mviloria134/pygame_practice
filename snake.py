@@ -4,14 +4,14 @@ import random
 import pygame
 
 # game initilization
-grid_size = 30
+grid_size = 20
 grid_max_x = 40
 grid_max_y = 40
 screen = pygame.display.set_mode((grid_max_x*grid_size, grid_max_y*grid_size))
 
 # colors
 WHITE = (255,255,255)
-GREY = (25,25,25)
+GREY = (100,100,100)
 
 # fonts
 pygame.font.init()
