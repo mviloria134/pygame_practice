@@ -4,13 +4,14 @@ import random
 import pygame
 
 # game initilization
-grid_size = 20
-grid_max_x = 60
-grid_max_y = 50
+grid_size = 30
+grid_max_x = 40
+grid_max_y = 40
 screen = pygame.display.set_mode((grid_max_x*grid_size, grid_max_y*grid_size))
 
 # colors
 WHITE = (255,255,255)
+GREY = (25,25,25)
 
 # fonts
 pygame.font.init()
@@ -26,13 +27,22 @@ SPAWN_APPLE = pygame.USEREVENT + 3
 def is_not_in_bounds(sprite):
     return sprite.rect.left < 0 or sprite.rect.right > grid_max_x*grid_size or sprite.rect.top < 0 or sprite.rect.bottom > grid_max_y*grid_size
 
+def generate_random_coords(exclude:pygame.Rect=None):
+    while True:
+        generated_coords = (random.randint(0,grid_max_x-1)*grid_size, random.randint(0,grid_max_y-1)*grid_size)
+        
+        if  exclude is None or (not exclude.collidepoint(generated_coords)):
+            return (random.randint(0,grid_max_x-1)*grid_size, random.randint(0,grid_max_y-1)*grid_size)
+        
 # classes
+# enums
 class Direction(Enum):
     UP = 1
     RIGHT = 2
     DOWN = 3
     LEFT = 4
 
+# game entities
 class Snake(pygame.sprite.Sprite):
     def __init__(self, *groups):
         super().__init__(*groups)
@@ -104,7 +114,33 @@ class Apple(pygame.sprite.Sprite):
         
         self.image = pygame.image.load('enemy-sprite.png')
         self.image = pygame.transform.scale(self.image, (self.size,self.size))
-        self.rect = self.image.get_rect(topleft=(random.randint(0,grid_max_x-1)*grid_size, random.randint(0,grid_max_y-1)*grid_size))
+        
+        while True:
+            self.rect = self.image.get_rect(topleft=generate_random_coords())
+            if not pygame.sprite.spritecollideany(self, wall_group):
+                break
+
+class Wall(pygame.sprite.Sprite):
+    size = grid_size * 2
+    color = GREY
+    
+    image = pygame.Surface((size, size))
+    image.fill(color)
+    
+    def __init__(self, *groups):
+        super().__init__(*groups)
+        
+        self.rect = self.image.get_rect(topleft=generate_random_coords())
+        self.rect.clamp_ip(screen.get_rect(topleft=(0,0)))
+    
+    def collide_with_snake(self):
+        snake = snake_group.sprite
+        
+        if snake is not None and self.rect.colliderect(snake.rect):
+            pygame.event.post(pygame.event.Event(GAME_OVER))
+            
+    def update(self):
+        self.collide_with_snake()
 
 # UI classes
 class Scoreboard:
@@ -183,6 +219,7 @@ class GameOverScreen:
 # initialize entities
 snake_group = pygame.sprite.GroupSingle()
 apple_group = pygame.sprite.Group()
+wall_group = pygame.sprite.Group()
 
 scoreboard = Scoreboard()
 game_over_screen = GameOverScreen()
@@ -206,6 +243,9 @@ def start_game():
     
     apple_group.empty()
     apple_group.add(Apple(), Apple())
+    
+    wall_group.empty()
+    wall_group.add(Wall(), Wall())
     
     scoreboard.reset()
 
@@ -241,11 +281,14 @@ while is_running:
         # update
         snake_group.update()
         button_group.update()
+        wall_group.update()
         
         # draw
         screen.fill((0,0,50))
         apple_group.draw(screen)
         snake_group.sprite.display()
+        wall_group.draw(screen)
+        
         scoreboard.display()
         button_group.draw(screen)
         
