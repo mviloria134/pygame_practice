@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from enum import Enum
 import random
 import pygame
@@ -17,8 +18,9 @@ font = pygame.font.SysFont("MultiType Pixel", grid_size)
 font_bigger = pygame.font.SysFont('MultiType Pixel', grid_size*3)
 
 # events
-SPAWN_APPLE = pygame.USEREVENT + 1
+START_GAME = pygame.USEREVENT + 1
 GAME_OVER = pygame.USEREVENT + 2
+SPAWN_APPLE = pygame.USEREVENT + 3
 
 # util funcs
 def is_not_in_bounds(sprite):
@@ -107,41 +109,85 @@ class Apple(pygame.sprite.Sprite):
 # UI classes
 class Scoreboard:
     def __init__(self):
-        self.score = 0
+        self.reset()
+        self.rect = self.text_render.get_rect(topleft=(0,0))
+        
+    def update_score_text(self):
         self.text = f"Score: {self.score}"
         self.text_render = font.render(self.text, False, (255,255,255))
-        self.rect = self.text_render.get_rect(topleft=(0,0))
+        
+    def add_score(self, amount):
+        self.score += amount
+        self.update_score_text()
+        
+    def reset(self):
+        self.score = 0
+        self.update_score_text()
     
     def display(self):
-        # self.rect.x += 100 * dt
-        # if is_not_in_bounds(self):
-        #     self.rect.topleft = (0,0)
-        self.text = f"Score: {self.score}"
-        self.text_render = font.render(self.text, False, (255,255,255))
         screen.blit(self.text_render, self.rect)
 
+class ClickableButton(pygame.sprite.Sprite):
+    def __init__(self, *groups, text:str="", posx=1*grid_size, posy=1*grid_size, click_behavior:Callable=None):
+        super().__init__(*groups)
+        self.inactive_color = (0,50,0)
+        self.active_color = (0,255,0)
+        self.on_click = click_behavior
+        self.text = text
+        
+        self.image = font_bigger.render(self.text, False, WHITE, self.inactive_color)
+        if not text:
+            self.image = pygame.transform.scale(self.image, (5*grid_size, 3*grid_size))
+        self.rect = self.image.get_rect(x=posx, y=posy)
+        
+    def is_active(self):
+        return self.rect.collidepoint(pygame.mouse.get_pos())
+        
+    def hover_over(self):
+        if self.is_active():
+            self.image = font_bigger.render(self.text, False, WHITE, self.active_color)
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+        else:
+            self.image = font_bigger.render(self.text, False, WHITE, self.inactive_color)
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            
+    def click(self):
+        if self.is_active():
+            self.on_click()
+            
+    def update(self):
+        self.hover_over()
+        
 class GameOverScreen:
     def __init__(self):
         self.game_over_text = font_bigger.render('GAME OVER', False, WHITE)
+        self.game_over_rect = self.game_over_text.get_rect(midtop=(grid_size*grid_max_x//2, grid_size*grid_max_y//4))
         self.update_final_score()
         
-        self.game_over_rect = self.game_over_text.get_rect(midtop=(grid_size*grid_max_x//2, grid_size*grid_max_y//4))
-        self.score_rect = self.score_text.get_rect(midtop=(grid_size*grid_max_x//2, self.game_over_rect.bottom))
+        self.retry_button = ClickableButton(text="Try Again?", click_behavior=lambda: pygame.event.post(pygame.event.Event(START_GAME)))
+        self.retry_button.rect.midbottom = (grid_size*grid_max_x//3, grid_size*grid_max_y//4*3)
+        self.quit_button = ClickableButton(text="Quit", click_behavior=lambda: pygame.event.post(pygame.event.Event(pygame.QUIT)))
+        self.quit_button.rect.midbottom = (grid_size*grid_max_x//3*2, grid_size*grid_max_y//4*3)
+        self.buttons = pygame.sprite.Group(self.quit_button, self.retry_button)
         
     def update_final_score(self):
         self.score_text = font_bigger.render(f'Score: {scoreboard.score}', False, WHITE)
+        self.score_rect = self.score_text.get_rect(midtop=(grid_size*grid_max_x//2, self.game_over_rect.bottom))
     
     def display(self):
+        self.buttons.update()
         screen.blit(self.game_over_text, self.game_over_rect)
         screen.blit(self.score_text, self.score_rect)
+        self.buttons.draw(screen)
 
 # initialize entities
-snake = Snake()
-snake_group = pygame.sprite.GroupSingle(snake)
-apple_group = pygame.sprite.Group(Apple(), Apple())
+snake_group = pygame.sprite.GroupSingle()
+apple_group = pygame.sprite.Group()
 
 scoreboard = Scoreboard()
 game_over_screen = GameOverScreen()
+test_button = ClickableButton(text="hi", click_behavior=lambda: pygame.event.post(pygame.event.Event(GAME_OVER)))
+button_group = pygame.sprite.Group(test_button)
 
 is_running = True
 clock = pygame.time.Clock()
@@ -154,29 +200,57 @@ class GameState(Enum):
     GAME_OVER = 2
 game_state = GameState.IN_GAME
 
+def start_game():
+    snake_group.empty()
+    snake_group.add(Snake())
+    
+    apple_group.empty()
+    apple_group.add(Apple(), Apple())
+    
+    scoreboard.reset()
+
+start_game()
 while is_running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
-        if event.type == SPAWN_APPLE:
-            apple_group.add(Apple())
-            scoreboard.score += Apple.score
+        
+        # user input events
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if game_state is GameState.IN_GAME:
+                for button in button_group.sprites():
+                    button.click()
+            if game_state is GameState.GAME_OVER:
+                for button in game_over_screen.buttons.sprites():
+                    button.click()
+        
+        # game state switch events
+        if event.type == START_GAME:
+            game_state = GameState.IN_GAME
+            start_game()
         if event.type == GAME_OVER:
             game_state = GameState.GAME_OVER
             game_over_screen.update_final_score()
+        
+        # in game events
+        if event.type == SPAWN_APPLE:
+            apple_group.add(Apple())
+            scoreboard.add_score(Apple.score)
     
     if game_state is GameState.IN_GAME:
         # update
-        snake.update()
+        snake_group.update()
+        button_group.update()
         
         # draw
         screen.fill((0,0,50))
         apple_group.draw(screen)
-        snake.display()
+        snake_group.sprite.display()
         scoreboard.display()
+        button_group.draw(screen)
         
     elif game_state is GameState.GAME_OVER:
-        screen.fill((50,0,0))
+        screen.fill((100,50,50))
         game_over_screen.display()
     
     # update display
