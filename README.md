@@ -6,15 +6,14 @@ The art for the sprite assets was done by me.
 ### `pong.py`
 
 A recreation of the classic game, Pong, but with Breakout-like powerups.  
-The idea of powerups came from one of my students.  
 
-The most complete game in the collection. Could use some tweaking for game balance in the future.
+The idea of powerups came from one of my students. Could use some tweaking for game balance in the future.
 
 ### `snake.py`
 
 A recreation of the classic game, Snake.
 
-The core mechanics of the game are finished. Might add more later to make it unique.
+The core of the game is finished. Might add more later to make it unique.
 
 ### `top_down.py`
 
