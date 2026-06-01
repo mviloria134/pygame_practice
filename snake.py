@@ -5,8 +5,8 @@ import pygame
 
 # game initilization
 grid_size = 20
-grid_max_x = 40
-grid_max_y = 40
+grid_max_x = 50
+grid_max_y = 50
 screen = pygame.display.set_mode((grid_max_x*grid_size, grid_max_y*grid_size))
 
 # colors
@@ -139,7 +139,6 @@ class Wall(pygame.sprite.Sprite):
         super().__init__(*groups)
         
         self.rect = self.image.get_rect(topleft=generate_random_coords())
-        self.rect.clamp_ip(screen.get_rect(topleft=(0,0)))
     
     def collide_with_snake(self):
         snake = snake_group.sprite
