@@ -19,9 +19,10 @@ font = pygame.font.SysFont("MultiType Pixel", grid_size)
 font_bigger = pygame.font.SysFont('MultiType Pixel', grid_size*3)
 
 # events
-START_GAME = pygame.USEREVENT + 1
-GAME_OVER = pygame.USEREVENT + 2
-SPAWN_APPLE = pygame.USEREVENT + 3
+START_GAME = pygame.event.custom_type()
+GAME_OVER = pygame.event.custom_type()
+SPAWN_APPLE = pygame.event.custom_type()
+SPAWN_WALL = pygame.event.custom_type()
 
 # util funcs
 def is_not_in_bounds(sprite):
@@ -30,9 +31,8 @@ def is_not_in_bounds(sprite):
 def generate_random_coords(exclude:pygame.Rect=None):
     while True:
         generated_coords = (random.randint(0,grid_max_x-1)*grid_size, random.randint(0,grid_max_y-1)*grid_size)
-        
         if  exclude is None or (not exclude.collidepoint(generated_coords)):
-            return (random.randint(0,grid_max_x-1)*grid_size, random.randint(0,grid_max_y-1)*grid_size)
+            return generated_coords
         
 # classes
 # enums
@@ -44,6 +44,7 @@ class Direction(Enum):
 
 # game entities
 class Snake(pygame.sprite.Sprite):
+    no_spawn_grid_square_radius = 10
     def __init__(self, *groups):
         super().__init__(*groups)
         self.size = grid_size
@@ -54,6 +55,9 @@ class Snake(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (self.size,self.size))
         
         self.rect = self.image.get_rect(x=grid_max_x//2 * grid_size, y=grid_max_x//2 * grid_size)
+        
+        self.no_spawn_rect = pygame.Rect(0,0, self.no_spawn_grid_square_radius*grid_size*2, self.no_spawn_grid_square_radius*grid_size*2)
+        self.no_spawn_rect.center=self.rect.center
         
         self.snake_body = [[self.rect.x,self.rect.y]]
 
@@ -99,6 +103,9 @@ class Snake(pygame.sprite.Sprite):
             for part in self.snake_body[1:]:
                 if self.rect.x == part[0] and self.rect.y == part[1]:
                     pygame.event.post(pygame.event.Event(GAME_OVER))
+                    
+    def visualize_no_spawn(self):
+        pygame.draw.rect(screen, (50,0,0), self.no_spawn_rect)
     
     def move(self):
         self.handle_keyboard_input()
@@ -106,8 +113,10 @@ class Snake(pygame.sprite.Sprite):
         self.check_if_in_bounds()
         self.update_body()
         self.collide_with_self()
+        self.no_spawn_rect.center=self.rect.center
         
     def display(self):
+        # self.visualize_no_spawn()
         for part in self.snake_body:
             screen.blit(self.image, part)
             
@@ -138,12 +147,17 @@ class Wall(pygame.sprite.Sprite):
     def __init__(self, *groups):
         super().__init__(*groups)
         
-        self.rect = self.image.get_rect(topleft=generate_random_coords())
+        self.rect = self.image.get_rect(topleft=generate_random_coords(snake_group.sprite.no_spawn_rect))
+        while True:
+            if pygame.sprite.spritecollideany(self, apple_group):
+                self.rect.topleft=generate_random_coords(snake_group.sprite.no_spawn_rect)
+            else:
+                break
     
     def collide_with_snake(self):
         snake = snake_group.sprite
         
-        if snake is not None and self.rect.colliderect(snake.rect):
+        if self.rect.colliderect(snake.rect):
             pygame.event.post(pygame.event.Event(GAME_OVER))
             
     def update(self):
@@ -253,6 +267,7 @@ def start_game():
     
     wall_group.empty()
     wall_group.add(Wall(), Wall())
+    pygame.time.set_timer(SPAWN_WALL, 5000)
     
     scoreboard.reset()
 
@@ -283,6 +298,9 @@ while is_running:
         if event.type == SPAWN_APPLE:
             apple_group.add(Apple())
             scoreboard.add_score(Apple.score)
+            
+        if event.type == SPAWN_WALL:
+            wall_group.add(Wall())
     
     if game_state is GameState.IN_GAME:
         # update
@@ -292,8 +310,8 @@ while is_running:
         
         # draw
         screen.fill((0,0,50))
-        apple_group.draw(screen)
         snake_group.sprite.display()
+        apple_group.draw(screen)
         wall_group.draw(screen)
         
         scoreboard.display()
