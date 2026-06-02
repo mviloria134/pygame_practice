@@ -24,7 +24,7 @@ GREY = (100, 100, 100)
 RED = (100, 50, 50)
 GRID_LIGHT = (180, 230, 250)
 GRID_DARK = (150, 200, 220)
-BRIGHT_GREEN = (100,200,100)
+BRIGHT_GREEN = (100, 200, 100)
 
 # fonts
 pygame.font.init()
@@ -37,6 +37,7 @@ GAME_OVER = pygame.event.custom_type()
 COLLECTED_APPLE = pygame.event.custom_type()
 SPAWN_WALL = pygame.event.custom_type()
 
+
 # classes
 # enums
 class Direction(Enum):
@@ -44,6 +45,7 @@ class Direction(Enum):
     RIGHT = 2
     DOWN = 3
     LEFT = 4
+
 
 class PlayArea:
     def __init__(self):
@@ -59,37 +61,47 @@ class PlayArea:
                 play_area_padding_squares * grid_size,
             )
         )
-    
-    def coords_to_grid_position(self, coords:tuple[int,int]):
-        x = coords[0]//grid_size - play_area_padding_squares
-        y = coords[1]//grid_size - play_area_padding_squares
-        return (x,y)
-    
-    def grid_position_to_coords(self, grid_pos):
-        return ((grid_pos[0]+play_area_padding_squares)*grid_size, (grid_pos[1]+play_area_padding_squares)*grid_size)
 
-    def is_sprite_in_bounds(self, sprite:pygame.sprite.Sprite):
+    def coords_to_grid_position(self, coords: tuple[int, int]):
+        x = coords[0] // grid_size - play_area_padding_squares
+        y = coords[1] // grid_size - play_area_padding_squares
+        return (x, y)
+
+    def grid_position_to_coords(self, grid_pos):
+        return (
+            (grid_pos[0] + play_area_padding_squares) * grid_size,
+            (grid_pos[1] + play_area_padding_squares) * grid_size,
+        )
+
+    def is_sprite_in_bounds(self, sprite: pygame.sprite.Sprite):
         return self.rect.contains(sprite.rect)
-    
-    def is_grid_pos_in_bounds(self, grid_pos:tuple[int,int]):
-        return grid_pos[0] >= 0 and grid_pos[0] < grid_max_x and grid_pos[1] >= 0 and grid_pos[1] < grid_max_y
-    
+
+    def is_grid_pos_in_bounds(self, grid_pos: tuple[int, int]):
+        return (
+            grid_pos[0] >= 0
+            and grid_pos[0] < grid_max_x
+            and grid_pos[1] >= 0
+            and grid_pos[1] < grid_max_y
+        )
+
     def is_occupied(self, grid_pos):
         for snake_pos in snake_group.sprite.snake_body:
             if grid_pos == self.coords_to_grid_position(snake_pos):
                 return True
-        
+
         for apple in apple_group.sprites():
             if grid_pos == self.coords_to_grid_position(apple.rect.topleft):
                 return True
-        
+
         for wall in wall_group.sprites():
             if grid_pos == self.coords_to_grid_position(wall.rect.topleft):
                 return True
-        
+
         return False
 
-    def generate_random_coords(self, exclude_rect: pygame.Rect = None, check_if_occupied:bool=False):
+    def generate_random_coords(
+        self, exclude_rect: pygame.Rect = None, check_if_occupied: bool = False
+    ):
         while True:
             generated_coords = (
                 (random.randint(0, grid_max_x - 1) + play_area_padding_squares)
@@ -97,19 +109,35 @@ class PlayArea:
                 (random.randint(0, grid_max_y - 1) + play_area_padding_squares)
                 * grid_size,
             )
-            if exclude_rect is None or (not exclude_rect.collidepoint(generated_coords)):
+            if exclude_rect is None or (
+                not exclude_rect.collidepoint(generated_coords)
+            ):
                 if not check_if_occupied:
                     return generated_coords
-                elif not self.is_occupied(self.coords_to_grid_position(generated_coords)):
+                elif not self.is_occupied(
+                    self.coords_to_grid_position(generated_coords)
+                ):
                     return generated_coords
 
     def display(self):
-        pygame.draw.rect(screen, "black", self.rect.inflate(grid_size, grid_size), width=grid_size, border_radius=5)
+        pygame.draw.rect(
+            screen,
+            "black",
+            self.rect.inflate(grid_size, grid_size),
+            width=grid_size,
+            border_radius=5,
+        )
         screen.blit(self.surf, self.rect)
         for column in range(grid_max_x):
             for row in range(grid_max_y):
-                if column%2 ^ row%2:
-                    screen.blit(self.grid_square_image, ((column+play_area_padding_squares)*grid_size, (row+play_area_padding_squares)*grid_size))
+                if column % 2 ^ row % 2:
+                    screen.blit(
+                        self.grid_square_image,
+                        (
+                            (column + play_area_padding_squares) * grid_size,
+                            (row + play_area_padding_squares) * grid_size,
+                        ),
+                    )
 
 
 # game entities
@@ -122,10 +150,12 @@ class Snake(pygame.sprite.Sprite):
 
         self.direction = Direction.RIGHT
 
-        self.snake_body_image = pygame.Surface((grid_size,grid_size))
+        self.snake_body_image = pygame.Surface((grid_size, grid_size))
         self.snake_body_image.fill(BRIGHT_GREEN)
         self.snake_head_image = pygame.image.load("item-sprite.png").convert_alpha()
-        self.snake_head_image = pygame.transform.scale(self.snake_head_image, (self.size, self.size))
+        self.snake_head_image = pygame.transform.scale(
+            self.snake_head_image, (self.size, self.size)
+        )
         self.image = pygame.transform.rotate(self.snake_head_image, -90)
 
         self.rect = self.image.get_rect(
@@ -224,7 +254,9 @@ class Apple(pygame.sprite.Sprite):
         self.image = pygame.image.load("enemy-sprite.png")
         self.image = pygame.transform.scale(self.image, (self.size, self.size))
 
-        self.rect = self.image.get_rect(topleft=play_area.generate_random_coords(check_if_occupied=True))
+        self.rect = self.image.get_rect(
+            topleft=play_area.generate_random_coords(check_if_occupied=True)
+        )
 
 
 class Wall(pygame.sprite.Sprite):
@@ -240,50 +272,58 @@ class Wall(pygame.sprite.Sprite):
             self.spawn_connected()
         else:
             self.spawn_randomly()
-            
+
     def spawn_connected(self):
         walls = wall_group.sprites()
         seen = []
         selected_wall = None
-        
+
         while True:
             walls_not_seen = [wall for wall in walls if wall not in seen]
             if not walls_not_seen:
                 self.spawn_randomly()
-                break
-            
+                return
+
             selected_wall = random.choice(walls_not_seen)
             seen.append(selected_wall)
-            
+
             if not selected_wall.rect.colliderect(snake_group.sprite.no_spawn_rect):
                 break
-        
-        spawn_positions = list(filter(lambda grid_pos: play_area.is_grid_pos_in_bounds(grid_pos), selected_wall.get_grid_positions_around()))
+
+        spawn_positions = list(
+            filter(
+                lambda grid_pos: play_area.is_grid_pos_in_bounds(grid_pos) and not play_area.is_occupied(grid_pos),
+                selected_wall.get_grid_positions_around(),
+            )
+        )
         spawn_position = random.choice(spawn_positions)
         self.rect = self.image.get_rect(
             topleft=play_area.grid_position_to_coords(spawn_position)
         )
-        
+
     def get_grid_positions_around(self):
         grid_pos = play_area.coords_to_grid_position(self.rect.topleft)
-        
+
         squares_around = []
-        squares_around.append((grid_pos[0]+1, grid_pos[1]))
-        squares_around.append((grid_pos[0]-1, grid_pos[1]))
-        squares_around.append((grid_pos[0], grid_pos[1]+1))
-        squares_around.append((grid_pos[0], grid_pos[1]-1))
-        
+        squares_around.append((grid_pos[0] + 1, grid_pos[1]))
+        squares_around.append((grid_pos[0] - 1, grid_pos[1]))
+        squares_around.append((grid_pos[0], grid_pos[1] + 1))
+        squares_around.append((grid_pos[0], grid_pos[1] - 1))
+
         return squares_around
-    
+
     def draw_squares_around(self):
         for square in self.get_grid_positions_around():
-            pygame.draw.rect(screen, RED, (play_area.grid_position_to_coords(square), (grid_size, grid_size)))
-    
+            pygame.draw.rect(
+                screen,
+                RED,
+                (play_area.grid_position_to_coords(square), (grid_size, grid_size)),
+            )
+
     def spawn_randomly(self):
         self.rect = self.image.get_rect(
             topleft=play_area.generate_random_coords(
-                exclude_rect=snake_group.sprite.no_spawn_rect,
-                check_if_occupied=True
+                exclude_rect=snake_group.sprite.no_spawn_rect, check_if_occupied=True
             )
         )
 
@@ -305,7 +345,9 @@ class Scoreboard:
     def update_score_text(self):
         self.text = f"Score: {self.score}"
         self.text_render = font.render(self.text, False, (255, 255, 255))
-        self.rect = self.text_render.get_rect(topleft=(play_area_padding_squares*grid_size, 5))
+        self.rect = self.text_render.get_rect(
+            topleft=(play_area_padding_squares * grid_size, 5)
+        )
 
     def add_score(self, amount):
         self.score += amount
@@ -436,8 +478,6 @@ scoreboard = Scoreboard()
 game_over_screen = GameOverScreen()
 
 
-
-
 # game states
 class GameState(Enum):
     IN_GAME = 1
@@ -456,7 +496,7 @@ def start_game():
 
     wall_group.empty()
     wall_group.add(Wall(), Wall())
-    pygame.time.set_timer(SPAWN_WALL, 5000)
+    pygame.time.set_timer(SPAWN_WALL, 2000)
 
     scoreboard.reset()
 
@@ -471,8 +511,8 @@ while is_running:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if game_state is GameState.IN_GAME:
                 mouse_pos = pygame.mouse.get_pos()
-                print(f'screen pos: {mouse_pos}')
-                print(f'grid pos: {play_area.coords_to_grid_position(mouse_pos)}')
+                print(f"screen pos: {mouse_pos}")
+                print(f"grid pos: {play_area.coords_to_grid_position(mouse_pos)}")
             if game_state is GameState.GAME_OVER:
                 for button in game_over_screen.buttons.sprites():
                     button.click()
@@ -505,8 +545,6 @@ while is_running:
         snake_group.sprite.display()
         apple_group.draw(screen)
         wall_group.draw(screen)
-        # for wall in wall_group.sprites():
-        #     wall.draw_squares_around()
 
         scoreboard.display()
 
