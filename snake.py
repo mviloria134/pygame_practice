@@ -19,11 +19,11 @@ dt = clock.tick(framerate) / 1000
 
 # colors
 WHITE = (255, 255, 255)
-DARK_BLUE = (0, 0, 50)
+DARK_BLUE = (30, 30, 50)
 GREY = (100, 100, 100)
 RED = (100, 50, 50)
-PASTEL_YELLOW = (250, 230, 150)
-DARK_YELLOW = (200, 180, 100)
+GRID_LIGHT = (180, 230, 250)
+GRID_DARK = (150, 200, 220)
 BRIGHT_GREEN = (100,200,100)
 
 # fonts
@@ -47,8 +47,8 @@ class Direction(Enum):
 
 class PlayArea:
     def __init__(self):
-        self.color = PASTEL_YELLOW
-        self.alt_color = DARK_YELLOW
+        self.color = GRID_LIGHT
+        self.alt_color = GRID_DARK
         self.grid_square_image = pygame.Surface((grid_size, grid_size))
         self.grid_square_image.fill(self.alt_color)
         self.surf = pygame.Surface((grid_size * grid_max_x, grid_size * grid_max_y))
@@ -176,7 +176,7 @@ class Snake(pygame.sprite.Sprite):
 
     def display(self):
         # self.visualize_no_spawn()
-        screen.blit(self.image, self.rect)
+        screen.blit(self.image, self.snake_body[0])
         for part in self.snake_body[1:]:
             screen.blit(self.snake_body_image, part)
 
