@@ -4,9 +4,9 @@ import random
 import pygame
 
 # game initilization
-grid_size = 25
-grid_max_x = 50
-grid_max_y = 50
+grid_size = 30
+grid_max_x = 40
+grid_max_y = 40
 play_area_padding_squares = 2
 SCREEN_W = (grid_max_x + play_area_padding_squares * 2) * grid_size
 SCREEN_H = (grid_max_y + play_area_padding_squares * 2) * grid_size
@@ -14,7 +14,7 @@ screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
 
 is_running = True
 clock = pygame.time.Clock()
-framerate = 20
+framerate = 15
 dt = clock.tick(framerate) / 1000
 
 # colors
@@ -120,13 +120,13 @@ class Snake(pygame.sprite.Sprite):
         if keys[pygame.K_w] and self.direction != Direction.DOWN:
             self.direction = Direction.UP
             self.image = pygame.transform.rotate(self.snake_head_image, 0)
-        elif keys[pygame.K_s] and self.direction != Direction.UP:
+        if keys[pygame.K_s] and self.direction != Direction.UP:
             self.direction = Direction.DOWN
             self.image = pygame.transform.rotate(self.snake_head_image, 180)
-        elif keys[pygame.K_a] and self.direction != Direction.RIGHT:
+        if keys[pygame.K_a] and self.direction != Direction.RIGHT:
             self.direction = Direction.LEFT
             self.image = pygame.transform.rotate(self.snake_head_image, 90)
-        elif keys[pygame.K_d] and self.direction != Direction.LEFT:
+        if keys[pygame.K_d] and self.direction != Direction.LEFT:
             self.direction = Direction.RIGHT
             self.image = pygame.transform.rotate(self.snake_head_image, -90)
 
