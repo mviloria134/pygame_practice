@@ -203,10 +203,8 @@ class ClickableButton(pygame.sprite.Sprite):
     def hover_over(self):
         if self.is_active():
             self.image = font_bigger.render(self.text, False, WHITE, self.active_color)
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
         else:
             self.image = font_bigger.render(self.text, False, WHITE, self.inactive_color)
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
             
     def click(self):
         if self.is_active():
@@ -214,7 +212,27 @@ class ClickableButton(pygame.sprite.Sprite):
             
     def update(self):
         self.hover_over()
+
+class ClickableButtonContainer(pygame.sprite.Group):
+    def __init__(self, *sprites):
+        super().__init__(*sprites)
+    
+    def has_active_button(self):
+        for button in self.sprites():
+            if button.is_active():
+                return True
+        return False
         
+    def hover(self):
+        if self.has_active_button():
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+        else:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            
+    def update(self):
+        super().update()
+        self.hover()
+
 class GameOverScreen:
     def __init__(self):
         self.game_over_text = font_bigger.render('GAME OVER', False, WHITE)
@@ -225,7 +243,7 @@ class GameOverScreen:
         self.retry_button.rect.midbottom = (grid_size*grid_max_x//3, grid_size*grid_max_y//4*3)
         self.quit_button = ClickableButton(text="Quit", click_behavior=lambda: pygame.event.post(pygame.event.Event(pygame.QUIT)))
         self.quit_button.rect.midbottom = (grid_size*grid_max_x//3*2, grid_size*grid_max_y//4*3)
-        self.buttons = pygame.sprite.Group(self.quit_button, self.retry_button)
+        self.buttons = ClickableButtonContainer(self.quit_button, self.retry_button)
         
     def update_final_score(self):
         self.score_text = font_bigger.render(f'Score: {scoreboard.score}', False, WHITE)
@@ -245,7 +263,7 @@ wall_group = pygame.sprite.Group()
 scoreboard = Scoreboard()
 game_over_screen = GameOverScreen()
 test_button = ClickableButton(text="hi", click_behavior=lambda: pygame.event.post(pygame.event.Event(GAME_OVER)))
-button_group = pygame.sprite.Group(test_button)
+button_group = ClickableButtonContainer(test_button)
 
 is_running = True
 clock = pygame.time.Clock()
