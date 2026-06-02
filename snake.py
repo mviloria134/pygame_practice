@@ -75,6 +75,7 @@ class PlayArea:
                 return generated_coords
 
     def display(self):
+        pygame.draw.rect(screen, "black", self.rect.inflate(grid_size, grid_size), width=grid_size, border_radius=5)
         screen.blit(self.surf, self.rect)
         for column in range(grid_max_x):
             for row in range(grid_max_y):
