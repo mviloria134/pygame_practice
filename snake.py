@@ -239,11 +239,11 @@ class Wall(pygame.sprite.Sprite):
 class Scoreboard:
     def __init__(self):
         self.reset()
-        self.rect = self.text_render.get_rect(topleft=(0, 0))
 
     def update_score_text(self):
         self.text = f"Score: {self.score}"
         self.text_render = font.render(self.text, False, (255, 255, 255))
+        self.rect = self.text_render.get_rect(topleft=(play_area_padding_squares*grid_size, 5))
 
     def add_score(self, amount):
         self.score += amount
