@@ -24,6 +24,7 @@ GREY = (100, 100, 100)
 RED = (100, 50, 50)
 PASTEL_YELLOW = (250, 230, 150)
 DARK_YELLOW = (200, 180, 100)
+BRIGHT_GREEN = (100,200,100)
 
 # fonts
 pygame.font.init()
@@ -91,8 +92,11 @@ class Snake(pygame.sprite.Sprite):
 
         self.direction = Direction.RIGHT
 
-        self.image = pygame.image.load("item-sprite.png").convert_alpha()
-        self.image = pygame.transform.scale(self.image, (self.size, self.size))
+        self.snake_body_image = pygame.Surface((grid_size,grid_size))
+        self.snake_body_image.fill(BRIGHT_GREEN)
+        self.snake_head_image = pygame.image.load("item-sprite.png").convert_alpha()
+        self.snake_head_image = pygame.transform.scale(self.snake_head_image, (self.size, self.size))
+        self.image = pygame.transform.rotate(self.snake_head_image, -90)
 
         self.rect = self.image.get_rect(
             x=grid_max_x // 2 * grid_size, y=grid_max_x // 2 * grid_size
@@ -114,12 +118,16 @@ class Snake(pygame.sprite.Sprite):
 
         if keys[pygame.K_w] and self.direction != Direction.DOWN:
             self.direction = Direction.UP
+            self.image = pygame.transform.rotate(self.snake_head_image, 0)
         elif keys[pygame.K_s] and self.direction != Direction.UP:
             self.direction = Direction.DOWN
+            self.image = pygame.transform.rotate(self.snake_head_image, 180)
         elif keys[pygame.K_a] and self.direction != Direction.RIGHT:
             self.direction = Direction.LEFT
+            self.image = pygame.transform.rotate(self.snake_head_image, 90)
         elif keys[pygame.K_d] and self.direction != Direction.LEFT:
             self.direction = Direction.RIGHT
+            self.image = pygame.transform.rotate(self.snake_head_image, -90)
 
     def change_direction(self):
         match self.direction:
@@ -168,8 +176,9 @@ class Snake(pygame.sprite.Sprite):
 
     def display(self):
         # self.visualize_no_spawn()
-        for part in self.snake_body:
-            screen.blit(self.image, part)
+        screen.blit(self.image, self.rect)
+        for part in self.snake_body[1:]:
+            screen.blit(self.snake_body_image, part)
 
     def update(self):
         self.move()
