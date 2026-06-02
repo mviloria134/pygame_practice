@@ -149,7 +149,7 @@ class Wall(pygame.sprite.Sprite):
         
         self.rect = self.image.get_rect(topleft=generate_random_coords(snake_group.sprite.no_spawn_rect))
         while True:
-            if pygame.sprite.spritecollideany(self, apple_group):
+            if pygame.sprite.spritecollideany(self, apple_group) or self.rect.right > screen.get_size()[0] or self.rect.bottom > screen.get_size()[1]:
                 self.rect.topleft=generate_random_coords(snake_group.sprite.no_spawn_rect)
             else:
                 break
@@ -262,8 +262,6 @@ wall_group = pygame.sprite.Group()
 
 scoreboard = Scoreboard()
 game_over_screen = GameOverScreen()
-test_button = ClickableButton(text="hi", click_behavior=lambda: pygame.event.post(pygame.event.Event(GAME_OVER)))
-button_group = ClickableButtonContainer(test_button)
 
 is_running = True
 clock = pygame.time.Clock()
@@ -297,9 +295,6 @@ while is_running:
         
         # user input events
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if game_state is GameState.IN_GAME:
-                for button in button_group.sprites():
-                    button.click()
             if game_state is GameState.GAME_OVER:
                 for button in game_over_screen.buttons.sprites():
                     button.click()
@@ -323,7 +318,6 @@ while is_running:
     if game_state is GameState.IN_GAME:
         # update
         snake_group.update()
-        button_group.update()
         wall_group.update()
         
         # draw
@@ -333,7 +327,6 @@ while is_running:
         wall_group.draw(screen)
         
         scoreboard.display()
-        button_group.draw(screen)
         
     elif game_state is GameState.GAME_OVER:
         screen.fill((100,50,50))
