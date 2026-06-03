@@ -4,9 +4,9 @@ import random
 import pygame
 
 # game initilization
-grid_size = 30
-grid_max_x = 40
-grid_max_y = 40
+grid_size = 40
+grid_max_x = 30
+grid_max_y = 30
 play_area_padding_squares = 2
 SCREEN_W = (grid_max_x + play_area_padding_squares * 2) * grid_size
 SCREEN_H = (grid_max_y + play_area_padding_squares * 2) * grid_size
@@ -531,8 +531,9 @@ while is_running:
             scoreboard.add_score(Apple.score)
 
         if event.type == SPAWN_WALL:
-            spawn_connected = False if random.choice(range(3)) == 0 else True
-            wall_group.add(Wall(connected=spawn_connected))
+            if game_state is GameState.IN_GAME:
+                spawn_connected = False if random.choice(range(3)) == 0 else True
+                wall_group.add(Wall(connected=spawn_connected))
 
     if game_state is GameState.IN_GAME:
         # update
