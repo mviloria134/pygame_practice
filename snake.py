@@ -119,8 +119,8 @@ class PlayArea:
                     self.coords_to_grid_position(generated_coords)
                 ):
                     return generated_coords
-
-    def display(self):
+                
+    def draw_border(self):
         pygame.draw.rect(
             screen,
             "black",
@@ -128,6 +128,8 @@ class PlayArea:
             width=grid_size,
             border_radius=5,
         )
+    
+    def draw_grid(self):
         screen.blit(self.surf, self.rect)
         for column in range(grid_max_x):
             for row in range(grid_max_y):
@@ -139,6 +141,11 @@ class PlayArea:
                             (row + play_area_padding_squares) * grid_size,
                         ),
                     )
+
+    def display(self):
+        self.draw_border()
+        self.draw_grid()
+        
 
 
 # game entities
@@ -511,6 +518,14 @@ def start_game():
 
     scoreboard.reset()
 
+def draw_game_board():
+    screen.fill(DARK_BLUE)
+    play_area.display()
+    snake_group.sprite.display()
+    apple_group.draw(screen)
+    wall_group.draw(screen)
+
+    scoreboard.display()
 
 start_game()
 while is_running:
@@ -552,23 +567,10 @@ while is_running:
         wall_group.update()
 
         # draw
-        screen.fill(DARK_BLUE)
-        play_area.display()
-        snake_group.sprite.display()
-        apple_group.draw(screen)
-        wall_group.draw(screen)
-
-        scoreboard.display()
+        draw_game_board()
 
     elif game_state is GameState.GAME_OVER:
-        # screen.fill(TRANSPARENT_BLACK)
-        screen.fill(DARK_BLUE)
-        play_area.display()
-        snake_group.sprite.display()
-        apple_group.draw(screen)
-        wall_group.draw(screen)
-
-        scoreboard.display()
+        draw_game_board()
         game_over_screen.display()
 
     # update display
