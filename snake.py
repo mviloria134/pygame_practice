@@ -25,6 +25,7 @@ RED = (100, 50, 50)
 GRID_LIGHT = (180, 230, 250)
 GRID_DARK = (150, 200, 220)
 BRIGHT_GREEN = (100, 200, 100)
+TRANSPARENT_BLACK = pygame.Color(0,0,0,150)
 
 # fonts
 pygame.font.init()
@@ -175,17 +176,18 @@ class Snake(pygame.sprite.Sprite):
 
     def handle_keyboard_input(self):
         keys = pygame.key.get_pressed()
+        prev_direction = self.direction
 
-        if keys[pygame.K_w] and self.direction != Direction.DOWN:
+        if keys[pygame.K_w] and prev_direction != Direction.DOWN:
             self.direction = Direction.UP
             self.image = pygame.transform.rotate(self.snake_head_image, 0)
-        if keys[pygame.K_s] and self.direction != Direction.UP:
+        if keys[pygame.K_s] and prev_direction != Direction.UP:
             self.direction = Direction.DOWN
             self.image = pygame.transform.rotate(self.snake_head_image, 180)
-        if keys[pygame.K_a] and self.direction != Direction.RIGHT:
+        if keys[pygame.K_a] and prev_direction != Direction.RIGHT:
             self.direction = Direction.LEFT
             self.image = pygame.transform.rotate(self.snake_head_image, 90)
-        if keys[pygame.K_d] and self.direction != Direction.LEFT:
+        if keys[pygame.K_d] and prev_direction != Direction.LEFT:
             self.direction = Direction.RIGHT
             self.image = pygame.transform.rotate(self.snake_head_image, -90)
 
@@ -277,29 +279,34 @@ class Wall(pygame.sprite.Sprite):
         walls = wall_group.sprites()
         seen = []
         selected_wall = None
-
         while True:
-            walls_not_seen = [wall for wall in walls if wall not in seen]
-            if not walls_not_seen:
-                self.spawn_randomly()
-                return
+            # find a random wall we haven't seen yet
+            while True:
+                walls_not_seen = [wall for wall in walls if wall not in seen]
+                if not walls_not_seen:
+                    self.spawn_randomly()
+                    return
 
-            selected_wall = random.choice(walls_not_seen)
-            seen.append(selected_wall)
+                selected_wall = random.choice(walls_not_seen)
+                seen.append(selected_wall)
 
-            if not selected_wall.rect.colliderect(snake_group.sprite.no_spawn_rect):
-                break
-
-        spawn_positions = list(
-            filter(
-                lambda grid_pos: play_area.is_grid_pos_in_bounds(grid_pos) and not play_area.is_occupied(grid_pos),
-                selected_wall.get_grid_positions_around(),
+                if not selected_wall.rect.colliderect(snake_group.sprite.no_spawn_rect):
+                    break
+            
+            # look for spawnable positions
+            spawn_positions = list(
+                filter(
+                    lambda grid_pos: play_area.is_grid_pos_in_bounds(grid_pos) and not play_area.is_occupied(grid_pos),
+                    selected_wall.get_grid_positions_around(),
+                )
             )
-        )
-        spawn_position = random.choice(spawn_positions)
-        self.rect = self.image.get_rect(
-            topleft=play_area.grid_position_to_coords(spawn_position)
-        )
+            # if at least one valid position found, pick one randomly, if not, find a new wall to check
+            if spawn_positions:
+                spawn_position = random.choice(spawn_positions)
+                self.rect = self.image.get_rect(
+                    topleft=play_area.grid_position_to_coords(spawn_position)
+                )
+                break
 
     def get_grid_positions_around(self):
         grid_pos = play_area.coords_to_grid_position(self.rect.topleft)
@@ -424,6 +431,9 @@ class ClickableButtonContainer(pygame.sprite.Group):
 
 
 class GameOverScreen:
+    background_surf = pygame.Surface((SCREEN_W, SCREEN_H), pygame.SRCALPHA)
+    background_surf.fill(TRANSPARENT_BLACK)
+    background_rect = background_surf.get_rect(x=0, y=0)
     def __init__(self):
         self.game_over_text = font_bigger.render("GAME OVER", False, WHITE)
         self.game_over_rect = self.game_over_text.get_rect(
@@ -461,6 +471,7 @@ class GameOverScreen:
         )
 
     def display(self):
+        screen.blit(self.background_surf, self.background_rect)
         self.buttons.update()
         screen.blit(self.game_over_text, self.game_over_rect)
         screen.blit(self.score_text, self.score_rect)
@@ -550,7 +561,14 @@ while is_running:
         scoreboard.display()
 
     elif game_state is GameState.GAME_OVER:
-        screen.fill(RED)
+        # screen.fill(TRANSPARENT_BLACK)
+        screen.fill(DARK_BLUE)
+        play_area.display()
+        snake_group.sprite.display()
+        apple_group.draw(screen)
+        wall_group.draw(screen)
+
+        scoreboard.display()
         game_over_screen.display()
 
     # update display
