@@ -23,7 +23,8 @@ GRAVITY = 5000
 # classes
 class PlatformCollider:
     def __init__(self):
-        pass
+        self.is_grounded = False
+        self.can_jump = False
     
     def collide_h(self):
         platforms_collided = pygame.sprite.spritecollide(self, platforms, False)
@@ -36,16 +37,22 @@ class PlatformCollider:
     def collide_v(self):
         platforms_collided = pygame.sprite.spritecollide(self, platforms, False)
         if pygame.sprite.collide_rect(self, ground.sprite): platforms_collided.append(ground.sprite)
-        for platform in platforms_collided:         
-            if self.vely > 0:
-                if platform is not ground.sprite and self is player_spawner.sprite:
-                    platform.collect()
-                self.rect.bottom = platform.rect.top
-                self.is_grounded = True
-                self.can_jump = True
-            else:
-                self.rect.top = platform.rect.bottom
-            self.vely = 0
+        if not platforms_collided:
+            self.is_grounded = False
+            self.can_jump = False
+        else:
+            for platform in platforms_collided:         
+                if self.vely >= 0:
+                    if platform is not ground.sprite and self is player_spawner.sprite:
+                        platform.collect()
+                    self.rect.bottom = platform.rect.top
+                    self.is_grounded = True
+                    self.can_jump = True
+                    self.vely = 0
+                    return
+                else:
+                    self.vely = 0
+                    self.rect.top = platform.rect.bottom
 
 class Player(pygame.sprite.Sprite, PlatformCollider):
     def __init__(self, *groups, pos:tuple=None):
@@ -58,8 +65,6 @@ class Player(pygame.sprite.Sprite, PlatformCollider):
         self.dirx = 0
         self.vely = 0
         self.jump_power = 1500
-        self.is_grounded = False
-        self.can_jump = False
         
         self.is_knocked_back = False
         self.knockback_cooldown = 0.5
