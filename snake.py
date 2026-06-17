@@ -212,10 +212,13 @@ class Snake(pygame.sprite.Sprite):
     def check_if_in_bounds(self):
         if not play_area.is_sprite_in_bounds(self):
             self.crashed = True
-            pygame.event.post(pygame.event.Event(GAME_OVER))
 
     def did_collect_apple(self):
         return pygame.sprite.spritecollide(self, apple_group, True)
+    
+    def collide_with_wall(self):
+        if pygame.sprite.spritecollideany(self, wall_group):
+            self.crashed = True
 
     def update_body(self):
         if self.crashed:
@@ -230,7 +233,7 @@ class Snake(pygame.sprite.Sprite):
         if len(self.snake_body) > 0:
             for part in self.snake_body[1:]:
                 if self.rect.x == part[0] and self.rect.y == part[1]:
-                    pygame.event.post(pygame.event.Event(GAME_OVER))
+                    self.crashed = True
 
     def visualize_no_spawn(self):
         pygame.draw.rect(screen, (50, 0, 0), self.no_spawn_rect)
@@ -239,9 +242,12 @@ class Snake(pygame.sprite.Sprite):
         self.handle_keyboard_input()
         self.change_direction()
         self.check_if_in_bounds()
+        self.collide_with_wall()
         self.update_body()
         self.collide_with_self()
         self.no_spawn_rect.center = self.rect.center
+        if self.crashed:
+            pygame.event.post(pygame.event.Event(GAME_OVER))
 
     def display(self):
         # self.visualize_no_spawn()
@@ -340,15 +346,6 @@ class Wall(pygame.sprite.Sprite):
                 exclude_rect=snake_group.sprite.no_spawn_rect, check_if_occupied=True
             )
         )
-
-    def collide_with_snake(self):
-        snake = snake_group.sprite
-
-        if self.rect.colliderect(snake.rect):
-            pygame.event.post(pygame.event.Event(GAME_OVER))
-
-    def update(self):
-        self.collide_with_snake()
 
 
 # UI classes
@@ -564,7 +561,6 @@ while is_running:
     if game_state is GameState.IN_GAME:
         # update
         snake_group.update()
-        wall_group.update()
 
         # draw
         draw_game_board()
