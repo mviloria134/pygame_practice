@@ -152,8 +152,12 @@ class PlayArea:
 class Snake(pygame.sprite.Sprite):
     no_spawn_grid_square_radius = 10
 
-    def __init__(self, *groups):
+    def __init__(self, *groups, initial_size=3):
         super().__init__(*groups)
+        if initial_size < 1:
+            initial_size = 1
+        elif initial_size >5:
+            initial_size = 5
         self.size = grid_size
 
         self.direction = Direction.RIGHT
@@ -178,7 +182,10 @@ class Snake(pygame.sprite.Sprite):
         )
         self.no_spawn_rect.center = self.rect.center
 
-        self.snake_body = [[self.rect.x, self.rect.y]]
+        self.snake_body = []
+        for i in range(initial_size):
+            self.snake_body.append([self.rect.x - i*grid_size, self.rect.y])
+        
         self.crashed = False
 
     def handle_keyboard_input(self):
