@@ -14,7 +14,7 @@ screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
 
 is_running = True
 clock = pygame.time.Clock()
-framerate = 15
+framerate = 12
 dt = clock.tick(framerate) / 1000
 
 # colors
@@ -26,6 +26,7 @@ GRID_LIGHT = (180, 230, 250)
 GRID_DARK = (150, 200, 220)
 BRIGHT_GREEN = (100, 200, 100)
 TRANSPARENT_BLACK = pygame.Color(0,0,0,150)
+YELLOW = (255,235,70)
 
 # fonts
 pygame.font.init()
@@ -163,8 +164,8 @@ class Snake(pygame.sprite.Sprite):
         self.direction = Direction.RIGHT
 
         self.snake_body_image = pygame.Surface((grid_size, grid_size))
-        self.snake_body_image.fill(BRIGHT_GREEN)
-        self.snake_head_image = pygame.image.load("item-sprite.png").convert_alpha()
+        self.snake_body_image.fill(YELLOW)
+        self.snake_head_image = pygame.image.load("player-sprite.png").convert_alpha()
         self.snake_head_image = pygame.transform.scale(
             self.snake_head_image, (self.size, self.size)
         )
