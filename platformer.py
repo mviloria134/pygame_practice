@@ -139,7 +139,6 @@ class Player(pygame.sprite.Sprite, PlatformCollider):
     def collide_enemy_v(self):
         collisions = pygame.sprite.spritecollide(self, enemy_spawner, False)
         for enemy in collisions:
-            print(self.vely)
             if self.vely > 90 and enemy.rect.top > self.rect.bottom - self.vely*dt:
                 enemy.kill()
                 self.vely = -self.vely
