@@ -25,7 +25,7 @@ Built as a space to practice new concepts in pygame such as camera movement and 
 
 A 2D sidescrolling platformer where the player "collects" platforms by jumping on them.
 
-Built to practice implementing various mechanics common to 2D sidescrollers.
+Built to practice implementing various mechanics common to 2D sidescrollers including knockback, defeating enemies by jumping on them, and camera movement.
 
 ## Experiments
 
