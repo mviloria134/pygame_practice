@@ -19,6 +19,7 @@ SPAWN_PLATFORM = pygame.USEREVENT + 3
 
 # other global constants
 GRAVITY = 5000
+FRICTION = 2000
 
 # classes
 class PlatformCollider:
@@ -66,10 +67,8 @@ class Player(pygame.sprite.Sprite, PlatformCollider):
         self.vely = 0
         self.jump_power = 1500
         
-        self.is_knocked_back = False
-        self.knockback_cooldown = 0.5
-        self.knockback_timer = self.knockback_cooldown
-        self.current_knockback_strength = 0
+        self.invincibility_seconds = 0.5
+        self.invincibility_timer = 0
         self.knockback_direction = 0
         
         self.image = pygame.image.load("player-sprite.png").convert_alpha()
@@ -81,14 +80,14 @@ class Player(pygame.sprite.Sprite, PlatformCollider):
         self.keyboard_input()
         
         # update horizontal position
-        # self.rect.x += self.dirx * self.velx * dt
-        if self.is_knocked_back:
-            self.knockback()
-        else:
-            self.collide_enemy_h()
         self.velx = min(max(-self.top_speed, self.velx + self.accelx), self.top_speed)
+        if self.velx < 0:
+            self.velx += FRICTION * dt
+        elif self.velx > 0:
+            self.velx -= FRICTION * dt
 
-        self.rect.x += self.dirx * self.velx * dt
+        self.collide_enemy_h()
+        self.rect.x += self.velx * dt
         
         self.collide_h()
         
@@ -102,14 +101,10 @@ class Player(pygame.sprite.Sprite, PlatformCollider):
         
         # horizontal movement
         if keys[pygame.K_a]:
-            self.dirx = -1
-            self.accelx = self.walk_accel
+            self.accelx = -self.walk_accel
         elif keys[pygame.K_d]:
-            self.dirx = 1
             self.accelx = self.walk_accel
         else:
-            self.dirx = 0
-            self.velx = 0
             self.accelx = 0
             
         # vertical movement
@@ -119,29 +114,22 @@ class Player(pygame.sprite.Sprite, PlatformCollider):
             self.can_jump = False
             
     def collide_enemy_h(self):
-        collided = pygame.sprite.spritecollideany(self, enemy_spawner)
-        if collided:
-            if not self.is_knocked_back:
-                self.is_knocked_back = True
-                self.knockback(obj=collided)
+        collided = pygame.sprite.spritecollide(self, enemy_spawner, False)
+        if self.invincibility_timer >= self.invincibility_seconds:
+            if collided:
+                self.invincibility_timer = 0
+                self.knockback(obj=collided[0])
+        else:
+            self.invincibility_timer += clock.get_time() / 1000
         
-    def knockback(self, obj:object=None):
-        if obj is not None:
-            self.current_knockback_strength = obj.knockback_strength
-            if obj.dirx <= 0:
-                self.knockback_direction = -1
-            else:
+    def knockback(self, obj:pygame.sprite.Sprite=None):
+        if obj:
+            if obj.rect.right <= self.rect.right:
                 self.knockback_direction = 1
-            print(self.knockback_direction) 
-            self.rect.y -= 500 * dt
-            self.knockback_timer = self.knockback_cooldown
-        # self.velx += self.knockback_direction * self.current_knockback_strength
-        # self.accelx -= self.current_knockback_strength
-        
-        # self.knockback_timer -= dt
-        # if self.knockback_timer <= 0:
-        #     self.knockback_timer = self.knockback_cooldown
-        #     self.is_knocked_back = False
+            elif obj.rect.left >= self.rect.left:
+                self.knockback_direction = -1
+            
+            self.velx += self.knockback_direction * obj.knockback_strength
         
         
     def update(self):
@@ -158,7 +146,7 @@ class Enemy(pygame.sprite.Sprite, PlatformCollider):
         self.velx = 300
         self.vely = 0
         self.dirx = random.choice([-1,1])
-        self.knockback_strength = 300
+        self.knockback_strength = 4000
         
         self.image = pygame.image.load('enemy-sprite.png').convert_alpha()
         self.image = pygame.transform.scale_by(self.image, 0.5)
@@ -273,7 +261,7 @@ class Camera():
     def pan(self):
         player = player_spawner.sprite
         if  not self.is_in_camera_bounds():
-            shift = player.dirx * player.velx * dt
+            shift = player.velx * dt
             for platform in platforms.sprites():
                 platform.rect.x -= shift
             for enemy in enemy_spawner.sprites():
