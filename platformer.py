@@ -37,7 +37,8 @@ class PlatformCollider:
             
     def collide_v(self):
         platforms_collided = pygame.sprite.spritecollide(self, platforms, False)
-        if pygame.sprite.collide_rect(self, ground.sprite): platforms_collided.append(ground.sprite)
+        if pygame.sprite.collide_rect(self, ground.sprite):
+            platforms_collided.append(ground.sprite)
         if not platforms_collided:
             self.is_grounded = False
             self.can_jump = False
@@ -186,7 +187,8 @@ class Enemy(pygame.sprite.Sprite, PlatformCollider):
             
     def collide_enemy_v(self):
         enemies_collided = pygame.sprite.spritecollide(self, enemy_spawner, False)
-        if pygame.sprite.collide_rect(self, ground.sprite): enemies_collided.append(ground.sprite)
+        if pygame.sprite.collide_rect(self, ground.sprite):
+            enemies_collided.append(ground.sprite)
         for enemy in enemies_collided:
             if enemy is self:
                 continue       

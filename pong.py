@@ -279,7 +279,7 @@ class ItemAnnouncer:
         self.posx = screen.get_size()[0] // 2
         self.posy = 75
         self.display_seconds = 1
-        self.text_surface = default_font.render(f'', False, (255,255,255))
+        self.text_surface = default_font.render('', False, (255,255,255))
         self.rect = self.text_surface.get_rect(midtop = (self.posx,self.posy))
         
     def announce(self, item_name:str, player_number:int):
@@ -291,7 +291,7 @@ class ItemAnnouncer:
         screen.blit(self.text_surface, self.rect)
     
     def turn_off(self):
-        self.text_surface = default_font.render(f'', False, (255,255,255))
+        self.text_surface = default_font.render('', False, (255,255,255))
 
 # helper functions
 
