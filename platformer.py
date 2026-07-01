@@ -66,6 +66,7 @@ class Player(pygame.sprite.Sprite, PlatformCollider):
         self.walk_accel = 100
         self.dirx = 0
         self.vely = 0
+        self.max_vely = 2000
         self.jump_power = 1500
         
         self.invincibility_seconds = 0.5
@@ -87,13 +88,14 @@ class Player(pygame.sprite.Sprite, PlatformCollider):
         elif self.velx > 0:
             self.velx -= FRICTION * dt
 
-        self.collide_enemy_h()
-        self.rect.x += self.velx * dt
-        
-        self.collide_h()
-        
         # update vertical position
         self.vely += GRAVITY * dt
+        self.collide_enemy_v()
+        self.collide_enemy_h()
+        self.vely = min(max(-self.max_vely, self.vely), self.max_vely)
+        
+        self.rect.x += self.velx * dt
+        self.collide_h()
         self.rect.y += (self.vely * dt)
         self.collide_v()
         
@@ -102,8 +104,10 @@ class Player(pygame.sprite.Sprite, PlatformCollider):
         
         # horizontal movement
         if keys[pygame.K_a]:
+            self.dirx = -1
             self.accelx = -self.walk_accel
         elif keys[pygame.K_d]:
+            self.dirx = 1
             self.accelx = self.walk_accel
         else:
             self.accelx = 0
@@ -131,6 +135,14 @@ class Player(pygame.sprite.Sprite, PlatformCollider):
                 self.knockback_direction = -1
             
             self.velx += self.knockback_direction * obj.knockback_strength
+            
+    def collide_enemy_v(self):
+        collisions = pygame.sprite.spritecollide(self, enemy_spawner, False)
+        for enemy in collisions:
+            print(self.vely)
+            if self.vely > 90 and enemy.rect.top > self.rect.bottom - self.vely*dt:
+                enemy.kill()
+                self.vely = -self.vely
         
         
     def update(self):
@@ -208,11 +220,11 @@ class EnemySpawner(pygame.sprite.Group):
         super().__init__(*sprites)
         
         self.spawn_time_min = 1
-        self.spawn_time_max = 5
-        self.max_enemies = 5
+        self.spawn_time_max = 2
+        self.max_enemies = 10
     
     def set_spawn_timer(self):
-        pygame.time.set_timer(SPAWN_ENEMY, random.randint(self.spawn_time_min,self.spawn_time_max) * 1000, 1)
+        pygame.time.set_timer(SPAWN_ENEMY, random.randint(self.spawn_time_min,self.spawn_time_max) * 500, 1)
     
     def spawn_enemies(self):
         if self.__len__() < self.max_enemies:
