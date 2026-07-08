@@ -24,9 +24,11 @@ COLLECT_ITEM = pygame.USEREVENT + 2
 
 class PlayArea:
     def __init__(self):
-        self.surf = pygame.Surface((PLAY_AREA_W, PLAY_AREA_H))
+        # self.surf = pygame.Surface((PLAY_AREA_W, PLAY_AREA_H))
+        self.surf = pygame.image.load('player-sprite.png').convert()
+        self.surf = pygame.transform.scale(self.surf, (PLAY_AREA_W, PLAY_AREA_H))
         self.rect = self.surf.get_rect(bottomleft=(0,PLAY_AREA_H))
-        self.surf.fill((0,0,50))
+        # self.surf.fill((0,0,50))
         
     def display(self, display_surf:pygame.Surface):
         display_surf.blit(self.surf, self.rect)
@@ -38,7 +40,7 @@ class Player(pygame.sprite.Sprite):
     walk1 = pygame.transform.scale(pygame.image.load('player-walk-1.png').convert_alpha(), size)
     walk2 = pygame.transform.scale(pygame.image.load('player-walk-2.png').convert_alpha(), size)
     stand = pygame.transform.scale(pygame.image.load('player-sprite.png').convert_alpha(), size)
-    walk_anim = [stand, walk1, stand, walk2]
+    walk_anim = [stand, walk1, stand, stand, walk2]
     image = stand
     rect = image.get_rect(center=(screen.get_size()[0]//2 ,screen.get_size()[1]//2))
     acceleration = 50
@@ -48,7 +50,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.walk_anim_frame = 0
         self.walk_anim_timer = 0
-        self.walk_anim_duration = framerate // 6
+        self.walk_anim_duration = framerate // 8
         self.is_walking = False
         
         self.image = self.stand
