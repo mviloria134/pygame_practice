@@ -258,6 +258,31 @@ class Platform_Spawner(pygame.sprite.Group):
     def __init__(self, *sprites):
         super().__init__(*sprites)
         self.max_platforms = 5
+        self.spawn_cooldown = 3
+        self.spawn_timer = 0
+        
+        self.min_spawn_x = -5
+        self.max_spawn_x = 15
+        
+        self.min_spawn_y = 6
+        self.max_spawn_y = 7
+        
+    def spawn_random_platform(self):
+        pos_x = random.randint(self.min_spawn_x, self.max_spawn_x)
+        pos_y = random.randint(self.min_spawn_y, self.max_spawn_y)
+        
+        self.add(Platform(pos=(pos_x*100, pos_y*100)))
+        
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+        if self.spawn_timer >= self.spawn_cooldown:
+            if self.sprites().__len__() < self.max_platforms:
+                self.spawn_random_platform()
+                self.spawn_timer = 0
+        else:
+            self.spawn_timer += dt
+                
+            
        
         
 class Camera():
@@ -294,11 +319,12 @@ player_spawner = PlayerSpawner(Player())
 enemy_spawner = EnemySpawner()
 enemy_spawner.spawn_enemies()
 
-ground = pygame.sprite.GroupSingle(Platform(size=(screen.get_size()[0],screen.get_size()[1]//5), pos=((screen.get_size()[0]//2,screen.get_size()[1])), color=Platform.color_collected))
+ground = pygame.sprite.GroupSingle(Platform(size=(screen.get_size()[0]*2,screen.get_size()[1]//5), pos=((screen.get_size()[0]//2,screen.get_size()[1])), color=Platform.color_collected))
 platforms = Platform_Spawner()
 platforms.add(Platform(pos=(100,600)))
 platforms.add(Platform(pos=(400,700)))
 platforms.add(Platform(pos=(600,750)))
+platforms.spawn_random_platform()
 
 
 camera = Camera()
@@ -325,7 +351,7 @@ while is_running:
     # draw
     screen.fill((0,0,50))
     camera.surf.fill((40,0,0))
-    camera.display()
+    # camera.display()
     player_spawner.draw(screen)
     enemy_spawner.draw(screen)
     platforms.draw(screen)
