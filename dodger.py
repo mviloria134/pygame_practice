@@ -20,6 +20,7 @@ class GameState(Enum):
     MAIN_MENU = 2
 
 game_state = GameState.PLAYING
+is_running = True
 
 # events
 START_GAME = pygame.event.custom_type()
@@ -49,10 +50,14 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.keyboard_input()
         self.move()
+        self.collide_with_obstacles()
         
     def move(self):
         self.rect.y += self.movement_direction * self.movement_speed * dt
-        
+    
+    def collide_with_obstacles(self):
+        if pygame.sprite.spritecollide(self, obstacles, True):
+            self.kill()
         
     def keyboard_input(self):
         keys = pygame.key.get_pressed()
@@ -113,7 +118,7 @@ class Obstacle(pygame.sprite.Sprite):
         
         self.movement_speed_x = random.randint(400,800)
         self.movement_speed_y = random.randint(-200, 200)
-        self.rotation_speed = random.randint(1,5)
+        self.rotation_speed = random.randint(1,3)
         
     def update(self):
         self.move()
@@ -217,10 +222,10 @@ def start_game():
 pygame.event.post(pygame.event.Event(START_GAME))
 
     
-while True:
+while is_running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
+            is_running = False
         if event.type == START_GAME:
             game_state = GameState.PLAYING
             start_game()
@@ -245,4 +250,5 @@ while True:
         
     pygame.display.flip()
     dt = clock.tick(framerate) / 1000
-    
+
+pygame.quit()
