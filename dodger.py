@@ -63,10 +63,31 @@ class PlayerSpawner(pygame.sprite.GroupSingle):
             self.empty()
             
         self.add(Player())
+    
+    
+# UI classes
+class Background:
+    def __init__(self, background_img_path:str, foreground_img_path:str=None, scrolling:bool=False):
+        self.background_image = load_image_from_file(background_img_path, (SCREEN_W, SCREEN_H))
+        self.foreground_image = load_image_from_file(foreground_img_path, (SCREEN_W, SCREEN_H))
+        self.scrolling = scrolling
         
+    def update(self):
+        if self.scrolling:
+            self.scroll()
+            
+    def scroll(self):
+        pass
+        
+    def display(self):
+        screen.blit(self.background_image, (0,0))
+        screen.blit(self.foreground_image, (0,0))
         
 # initialize sprite groups
 player_spawner = PlayerSpawner()
+
+# initialize UI classes
+in_game_bg = Background(background_img_path='background.png', foreground_img_path='bg cloudiness.png')
 
 # switch game states
 def start_game():
@@ -95,6 +116,7 @@ while True:
         
         # draw
         screen.fill((0,0,50))
+        in_game_bg.display()
         player_spawner.draw(screen)
         
     pygame.display.flip()
