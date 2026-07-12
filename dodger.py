@@ -40,6 +40,28 @@ class Player(pygame.sprite.Sprite):
         self.image = load_image_from_file('item-sprite.png', (50,50))
         self.image = pygame.transform.rotate(self.image, -90)
         self.rect = self.image.get_rect(center=(100, SCREEN_H//2))
+        
+        self.movement_direction = 0
+        self.movement_speed = 500
+        
+    def update(self):
+        self.keyboard_input()
+        self.move()
+        
+    def move(self):
+        self.rect.y += self.movement_direction * self.movement_speed * dt
+        
+        
+    def keyboard_input(self):
+        keys = pygame.key.get_pressed()
+        
+        if keys[pygame.K_w]:
+            self.movement_direction = -1
+        elif keys[pygame.K_s]:
+            self.movement_direction = 1
+        else:
+            self.movement_direction = 0
+    
 
 class PlayerSpawner(pygame.sprite.GroupSingle):
     def __init__(self, sprite = None):
