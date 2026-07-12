@@ -136,23 +136,23 @@ class ScrollingBackground(Background):
     def __init__(self, background_img_path:str, speed:int):
         super().__init__(background_img_path)              
         self.speed = speed
-        self.xpos1 = 0
+        self.xpos = 0
         self.xpos2 = SCREEN_W
         
     def update(self):
         self.scroll()
         
     def scroll(self):
-        self.xpos1 -= self.speed * dt
-        if self.xpos1 < -SCREEN_W:
-            self.xpos1 = SCREEN_W
+        self.xpos -= self.speed * dt
+        if self.xpos <= -SCREEN_W:
+            self.xpos += SCREEN_W * 2
             
         self.xpos2 -= self.speed * dt
-        if self.xpos2 < -SCREEN_W:
-            self.xpos2 = SCREEN_W
+        if self.xpos2 <= -SCREEN_W:
+            self.xpos2 += SCREEN_W * 2
         
     def display(self):
-        screen.blit(self.img, (self.xpos1, 0))
+        screen.blit(self.img, (self.xpos, 0))
         screen.blit(self.img, (self.xpos2, 0))
         
 class Scene:
