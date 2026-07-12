@@ -1,4 +1,5 @@
 import pygame
+import random
 from enum import Enum
 
 pygame.init()
@@ -85,6 +86,42 @@ class PlayerSpawner(pygame.sprite.GroupSingle):
             self.empty()
             
         self.add(Player())
+        
+class Obstacle(pygame.sprite.Sprite):
+    def __init__(self, *groups):
+        super().__init__(*groups)
+        
+        size = random.randint(50,150)
+        
+        self.image = load_image_from_file('player-sprite.png', (size,size))
+        self.rect = self.image.get_rect(midleft=(SCREEN_W, random.randint(100, SCREEN_H-100)))
+        
+        self.speed = 600
+        
+    def update(self):
+        self.move()
+        
+    def move(self):
+        self.rect.x -= self.speed * dt
+
+class ObstacleSpawner(pygame.sprite.Group):
+    def __init__(self, *sprites):
+        super().__init__(*sprites)
+        
+        self.spawn_cooldown_seconds = 0.5
+        self.spawn_timer = 0
+        
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+        
+        if self.spawn_timer < self.spawn_cooldown_seconds:
+            self.spawn_timer += dt
+        else:
+            self.spawn_timer = 0
+            self.spawn()
+        
+    def spawn(self):
+        self.add(Obstacle())
     
     
 # UI classes
@@ -132,6 +169,7 @@ class Scene:
         
 # initialize sprite groups
 player_spawner = PlayerSpawner()
+obstacles = ObstacleSpawner()
 
 # initialize UI classes
 in_game_bg = ScrollingBackground(background_img_path='background.png', speed=100)
@@ -163,6 +201,7 @@ while True:
     if game_state == GameState.PLAYING:
         # update entities
         player_spawner.update()
+        obstacles.update()
         
         
         # update UI
@@ -172,6 +211,7 @@ while True:
         screen.fill((0,0,50))
         in_game_scene.display()
         player_spawner.draw(screen)
+        obstacles.draw(screen)
         
     pygame.display.flip()
     dt = clock.tick(framerate) / 1000
