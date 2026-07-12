@@ -134,16 +134,16 @@ class ObstacleSpawner(pygame.sprite.Group):
     def __init__(self, *sprites):
         super().__init__(*sprites)
         
-        self.spawn_cooldown_seconds = .5
+        self.spawn_cooldown_max_seconds = 0.8
         self.spawn_timer = 0
         
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         
-        if self.spawn_timer < self.spawn_cooldown_seconds:
+        if self.spawn_timer < self.spawn_cooldown_max_seconds:
             self.spawn_timer += dt
         else:
-            self.spawn_timer = 0
+            self.spawn_timer = random.uniform(0,self.spawn_cooldown_max_seconds)
             self.spawn()
         
     def spawn(self):
