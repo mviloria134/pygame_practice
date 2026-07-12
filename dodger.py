@@ -112,7 +112,7 @@ class Obstacle(pygame.sprite.Sprite):
         self.image = self.rotations[self.current_angle]
         self.rect = self.image.get_rect(midleft=(SCREEN_W, random.randint(100, SCREEN_H-100)))
         
-        self.movement_speed = 600
+        self.movement_speed = random.randint(400,800)
         self.rotation_speed = random.randint(1,5)
         
     def update(self):
