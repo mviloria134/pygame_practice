@@ -118,6 +118,7 @@ class Obstacle(pygame.sprite.Sprite):
         self.movement_speed_x = random.randint(400,800)
         self.movement_speed_y = random.randint(-200, 200)
         self.rotation_speed = random.randint(1,3)
+        self.rotation_speed = -self.rotation_speed if random.randint(0,1) == 0 else self.rotation_speed
         
     def update(self):
         self.move()
@@ -215,6 +216,7 @@ in_game_scene.bgs.append(in_game_fg)
 # switch game states
 def start_game():
     player_spawner.spawn_player()
+    obstacles.empty()
 
 
 # start game
