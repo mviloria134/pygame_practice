@@ -1,5 +1,6 @@
 import pygame
 import random
+import math
 from enum import Enum
 
 pygame.init()
@@ -88,27 +89,52 @@ class PlayerSpawner(pygame.sprite.GroupSingle):
         self.add(Player())
         
 class Obstacle(pygame.sprite.Sprite):
+    _cache = {}
+    
+    # rotation caching code from https://bugnet.io/blog/pygame-performance-tips-for-indie-developers
     def __init__(self, *groups):
         super().__init__(*groups)
         
         size = random.randint(50,150)
         
-        self.image = load_image_from_file('player-sprite.png', (size,size))
+        img_path = 'player-sprite.png'
+        
+        self.image = load_image_from_file(img_path, (size,size))
+        
+        if size not in self._cache:
+            self._cache[size] = [
+                pygame.transform.rotate(self.image, angle)
+                for angle in range(0, 360)
+            ]
+            
+        self.rotations = self._cache[size]
+        self.current_angle = 0
+        self.image = self.rotations[self.current_angle]
         self.rect = self.image.get_rect(midleft=(SCREEN_W, random.randint(100, SCREEN_H-100)))
         
-        self.speed = 600
+        self.movement_speed = 600
+        self.rotation_speed = random.randint(1,5)
         
     def update(self):
         self.move()
+        self.spin()
         
     def move(self):
-        self.rect.x -= self.speed * dt
+        self.rect.x -= self.movement_speed * dt
+    
+    def update_angle(self):
+        self.current_angle += self.rotation_speed
+    
+    def spin(self):
+        self.update_angle()
+        self.image = self.rotations[(self.current_angle % 360)]
+        self.rect = self.image.get_rect(center=self.rect.center)
 
 class ObstacleSpawner(pygame.sprite.Group):
     def __init__(self, *sprites):
         super().__init__(*sprites)
         
-        self.spawn_cooldown_seconds = 0.5
+        self.spawn_cooldown_seconds = .5
         self.spawn_timer = 0
         
     def update(self, *args, **kwargs):
