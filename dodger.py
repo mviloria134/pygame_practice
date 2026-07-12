@@ -62,8 +62,7 @@ class Player(pygame.sprite.Sprite):
         elif keys[pygame.K_s]:
             self.movement_direction = 1
         else:
-            self.movement_direction = 0
-    
+            self.movement_direction = 0  
 
 class PlayerSpawner(pygame.sprite.GroupSingle):
     def __init__(self, sprite = None):
@@ -113,7 +112,7 @@ class Obstacle(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(midleft=(SCREEN_W, random.randint(100, SCREEN_H-100)))
         
         self.movement_speed_x = random.randint(400,800)
-        self.movement_speed_y = random.randint(-300, 300)
+        self.movement_speed_y = random.randint(-200, 200)
         self.rotation_speed = random.randint(1,5)
         
     def update(self):
