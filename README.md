@@ -15,6 +15,10 @@ A recreation of the classic game, Snake.
 
 The core of the game is finished. Might add more later to make it unique.
 
+### `dodger.py`
+
+A 2D top-down game where the player dodges incoming obstacles while flying through space.
+
 ### `top_down.py`
 
 A 2D top-down game where the player runs around collecting items while avoiding enemies.
