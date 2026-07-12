@@ -1,6 +1,5 @@
 import pygame
 import random
-import math
 from enum import Enum
 
 pygame.init()
