@@ -203,8 +203,8 @@ player_spawner = PlayerSpawner()
 obstacles = ObstacleSpawner()
 
 # initialize UI classes
-in_game_bg = ScrollingBackground(background_img_path='background.png', speed=100)
-in_game_fg = ScrollingBackground(background_img_path='bg cloudiness.png', speed=250)
+in_game_bg = ScrollingBackground(background_img_path='background.png', speed=250)
+in_game_fg = ScrollingBackground(background_img_path='bg cloudiness.png', speed=450)
 in_game_scene = Scene()
 in_game_scene.bgs.append(in_game_bg)
 in_game_scene.bgs.append(in_game_fg)
