@@ -33,5 +33,6 @@ Built to practice implementing various mechanics common to 2D sidescrollers incl
 
 ## Experiments
 
+- `test3d.py` - trying to figure out how to simulate 3d in pygame. so far just independent exploration of ideas
 - `game_test.py` - collisions with bouncing balls. Honestly very fun to watch.
 - `ball_bounce.py` - testing physics for bouncing balls with gravity as well as player input
