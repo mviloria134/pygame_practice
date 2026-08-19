@@ -184,7 +184,8 @@ class Bullet(pygame.sprite.Sprite):
         self.rect.x += self.speed * dt
     
     def hit_obstacle(self):
-        pass
+        if pygame.sprite.spritecollide(self, obstacles, True):
+            self.kill()
     
     def update(self):
         self.move()
