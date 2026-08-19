@@ -24,6 +24,7 @@ is_running = True
 
 # events
 START_GAME = pygame.event.custom_type()
+OBSTACLE_DESTROYED = pygame.event.custom_type()
 
 # helper functions
 def load_image_from_file(path:str, scale_to_size:tuple[int,int]|None=None, scale_by_factor:float|None=None) -> pygame.surface.Surface:
@@ -223,10 +224,7 @@ class Bullet(pygame.sprite.Sprite):
     
     def hit_obstacle(self):
         if pygame.sprite.spritecollide(self, obstacles, True):
-            obstacles.enemies_left -= 1
-            
-            if obstacles.enemies_left == 0:
-                obstacles.end_wave()
+            pygame.event.post(pygame.event.Event(OBSTACLE_DESTROYED))
             self.kill()
     
     def update(self):
@@ -281,13 +279,13 @@ class UIDisplay:
     
     def __init__(self, label, value, pos):
         self.label = label
-        self.value = value
-        
-        self.image = self.font.render(f'{self.label} {self.value}', False, "white")
+
+        self.update(value)
         self.pos = pos
         
     def update(self, new_value):
-        self.image = self.font.render(f'{self.label} {new_value}', False, "white")
+        self.value = new_value
+        self.image = self.font.render(f'{self.label} {self.value}', False, "white")
         
     def draw(self):
         screen.blit(self.image, self.pos)
@@ -324,6 +322,11 @@ while is_running:
         if event.type == START_GAME:
             game_state = GameState.PLAYING
             start_game()
+        if event.type == OBSTACLE_DESTROYED:
+            obstacles.enemies_left -= 1
+            kills_to_next_wave_display.update(obstacles.enemies_left)
+            if obstacles.enemies_left == 0:
+                obstacles.end_wave()
         # if event.type == pygame.KEYDOWN:
         #     if event.key == pygame.K_k:
         #         player_spawner.empty()
