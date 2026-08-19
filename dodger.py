@@ -171,6 +171,7 @@ class ObstacleSpawner(pygame.sprite.Group):
         self.wave_cooldown_timer = 0
         
         self.wave_over = False
+        self.wave_number = 1
         
     def increase_difficulty(self):
         # TODO: call this after every wave to update how frequently enemies spawn as well as increase difficulty in other ways
@@ -204,6 +205,7 @@ class ObstacleSpawner(pygame.sprite.Group):
             
     def start_wave(self):
         self.wave_over = False
+        self.wave_number += 1
         self.set_wave_goal()
         self.increase_difficulty()
     
@@ -303,7 +305,8 @@ in_game_scene = Scene()
 in_game_scene.bgs.append(in_game_bg)
 in_game_scene.bgs.append(in_game_fg)
 
-kills_to_next_wave_display = UIDisplay(label="Kills to Next Wave: ", value=obstacles.enemies_left, pos=(0,0))
+wave_number_display = UIDisplay(label='Wave: ', value=obstacles.wave_number, pos=(0,0)) 
+kills_to_next_wave_display = UIDisplay(label="Kills to Next Wave: ", value=obstacles.enemies_left, pos=(0,25))
 
 # switch game states
 def start_game():
@@ -331,6 +334,7 @@ while is_running:
         if event.type == START_NEXT_WAVE:
             obstacles.start_wave()
             kills_to_next_wave_display.update(obstacles.enemies_left)
+            wave_number_display.update(obstacles.wave_number)
         # if event.type == pygame.KEYDOWN:
         #     if event.key == pygame.K_k:
         #         player_spawner.empty()
@@ -351,6 +355,7 @@ while is_running:
         obstacles.draw(screen)
         bullets.draw(screen)
         kills_to_next_wave_display.draw()
+        wave_number_display.draw()
         
     pygame.display.flip()
     dt = clock.tick(framerate) / 1000
