@@ -169,6 +169,10 @@ class ObstacleSpawner(pygame.sprite.Group):
         self.wave_cooldown_timer = 0
         
         self.wave_over = False
+        
+    def increase_difficulty(self):
+        # TODO: call this after every wave to update how frequently enemies spawn as well as increase difficulty in other ways
+        pass
     
     def set_wave_goal(self):
         self.wave_goal += 10
