@@ -198,8 +198,12 @@ class ObstacleSpawner(pygame.sprite.Group):
             self.wave_cooldown_timer += dt
         else:
             self.wave_cooldown_timer = 0
-            self.wave_over = False
-            self.set_wave_goal()
+            self.start_wave()
+            
+    def start_wave(self):
+        self.wave_over = False
+        self.set_wave_goal()
+        self.increase_difficulty()
     
     def end_wave(self):
         self.wave_over = True
