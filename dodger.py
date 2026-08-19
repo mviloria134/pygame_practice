@@ -46,6 +46,9 @@ class Player(pygame.sprite.Sprite):
         self.movement_direction = 0
         self.movement_speed = 500
         
+        self.fire_rate = 0.2
+        self.fire_timer = 0
+        
     def update(self):
         self.keyboard_input()
         self.move()
@@ -66,7 +69,16 @@ class Player(pygame.sprite.Sprite):
         elif keys[pygame.K_s]:
             self.movement_direction = 1
         else:
-            self.movement_direction = 0  
+            self.movement_direction = 0
+            
+        if keys[pygame.K_SPACE] and self.fire_timer >= self.fire_rate:
+            self.shoot()
+            self.fire_timer = 0
+        else:
+            self.fire_timer += dt
+            
+    def shoot(self):
+        bullets.add(Bullet(pos=self.rect.midright))
 
 class PlayerSpawner(pygame.sprite.GroupSingle):
     def __init__(self, sprite = None):
@@ -146,6 +158,7 @@ class ObstacleSpawner(pygame.sprite.Group):
         self.spawn_cooldown_max_seconds = 0.8
         self.spawn_timer = 0
         
+        
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         
@@ -157,7 +170,25 @@ class ObstacleSpawner(pygame.sprite.Group):
         
     def spawn(self):
         self.add(Obstacle())
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, *groups, pos:tuple[int,int]):
+        super().__init__(*groups)
+        
+        self.image = load_image_from_file('enemy-sprite.png', (25,25))
+        self.rect = self.image.get_rect(midleft=pos)
+        
+        self.speed = 800
+        
+    def move(self):
+        self.rect.x += self.speed * dt
     
+    def hit_obstacle(self):
+        pass
+    
+    def update(self):
+        self.move()
+        self.hit_obstacle()
     
 # UI classes
 class Background:
@@ -201,10 +232,12 @@ class Scene:
     def display(self):
         for bg in self.bgs:
             bg.display()
-        
+
+
 # initialize sprite groups
 player_spawner = PlayerSpawner()
 obstacles = ObstacleSpawner()
+bullets = pygame.sprite.Group()
 
 # initialize UI classes
 in_game_bg = ScrollingBackground(background_img_path='background.png', speed=250)
@@ -217,6 +250,7 @@ in_game_scene.bgs.append(in_game_fg)
 def start_game():
     player_spawner.spawn_player()
     obstacles.empty()
+    bullets.empty()
 
 
 # start game
@@ -238,7 +272,7 @@ while is_running:
         # update entities
         player_spawner.update()
         obstacles.update()
-        
+        bullets.update()
         
         # update UI
         in_game_scene.update()
@@ -248,6 +282,7 @@ while is_running:
         in_game_scene.display()
         player_spawner.draw(screen)
         obstacles.draw(screen)
+        bullets.draw(screen)
         
     pygame.display.flip()
     dt = clock.tick(framerate) / 1000
