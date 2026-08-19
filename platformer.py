@@ -58,7 +58,7 @@ class PlatformCollider:
                     self.rect.top = platform.rect.bottom
 
 class Player(pygame.sprite.Sprite, PlatformCollider):
-    def __init__(self, *groups, pos:tuple=None):
+    def __init__(self, *groups, pos:tuple[int,int]|None=None):
         super().__init__(*groups)
         self.posx, self.posy = (n//2 for n in screen.get_size()) if pos is None else pos
         self.velx = 0
@@ -286,7 +286,7 @@ class Platform_Spawner(pygame.sprite.Group):
             
        
         
-class Camera():
+class Camera:
     def __init__(self, cam_bounds:tuple=(200,200)):
         self.bounds = cam_bounds
         self.surf = pygame.Surface((screen.get_size()[0]-self.bounds[0]*2, screen.get_size()[1]-self.bounds[1]*2))

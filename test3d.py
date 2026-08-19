@@ -30,7 +30,7 @@ def z_to_relative_scale(zpos:int):
 print(z_to_relative_scale(1))
 
 class Player(Sprite):
-    _cache = {}
+    _cache = {}  # noqa: RUF012
     def __init__(self, *groups):
         super().__init__(*groups)
         
