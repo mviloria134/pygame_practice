@@ -1,6 +1,6 @@
 import pygame
-from pygame.event import Event
-from pygame.sprite import Sprite, Group
+from pygame.sprite import Group, Sprite
+
 from dodger import load_image_from_file
 
 pygame.init()
@@ -46,6 +46,9 @@ class Player(Sprite):
         self.dirx = 0
         self.accelx = 300
         
+        self.diry = 0
+        self.accely = 300
+        
     def update(self):
         self.get_input()
         self.move()
@@ -63,6 +66,15 @@ class Player(Sprite):
             self.dirx = 1
         else:
             self.dirx = 0
+            
+        mouse_buttons = pygame.mouse.get_pressed()
+        
+        if mouse_buttons[0]:
+            self.diry = -1
+        elif mouse_buttons[2]:
+            self.diry = 1
+        else:
+            self.diry = 0
     
     def move(self):
         self.get_input()
@@ -71,6 +83,7 @@ class Player(Sprite):
         self.rect = self.image.get_rect(center=(self.rect.center))
         
         self.rect.x += self.dirx * self.accelx * dt
+        self.rect.y += self.diry * self.accely * dt
         
         
 player_group = Group(Player())
@@ -79,6 +92,11 @@ while is_running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
+        # if event.type == pygame.MOUSEBUTTONDOWN:
+        #     if event.button == 1:
+        #         player_group.sprites()[0].diry = -1
+        #     if event.button == 3:
+        #         player_group.sprites()[0].diry = 1
             
             
     player_group.update()
