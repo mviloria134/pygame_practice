@@ -184,9 +184,9 @@ class ObstacleSpawner(pygame.sprite.Group):
         if self.wave_over:
             self.go_to_next_wave()
         else:
-            self.spawn()
+            self.spawn_obstacles()
         
-    def spawn(self):
+    def spawn_obstacles(self):
         if self.spawn_timer < self.spawn_cooldown_max_seconds:
             self.spawn_timer += dt
         else:
