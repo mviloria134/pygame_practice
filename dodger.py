@@ -25,6 +25,7 @@ is_running = True
 # events
 START_GAME = pygame.event.custom_type()
 OBSTACLE_DESTROYED = pygame.event.custom_type()
+START_NEXT_WAVE = pygame.event.custom_type()
 
 # helper functions
 def load_image_from_file(path:str, scale_to_size:tuple[int,int]|None=None, scale_by_factor:float|None=None) -> pygame.surface.Surface:
@@ -199,7 +200,7 @@ class ObstacleSpawner(pygame.sprite.Group):
             self.wave_cooldown_timer += dt
         else:
             self.wave_cooldown_timer = 0
-            self.start_wave()
+            pygame.event.post(pygame.event.Event(START_NEXT_WAVE))
             
     def start_wave(self):
         self.wave_over = False
@@ -327,6 +328,9 @@ while is_running:
             kills_to_next_wave_display.update(obstacles.enemies_left)
             if obstacles.enemies_left == 0:
                 obstacles.end_wave()
+        if event.type == START_NEXT_WAVE:
+            obstacles.start_wave()
+            kills_to_next_wave_display.update(obstacles.enemies_left)
         # if event.type == pygame.KEYDOWN:
         #     if event.key == pygame.K_k:
         #         player_spawner.empty()
@@ -339,7 +343,6 @@ while is_running:
         
         # update UI
         in_game_scene.update()
-        kills_to_next_wave_display.update(obstacles.enemies_left)
         
         # draw
         screen.fill((0,0,50))
