@@ -62,6 +62,9 @@ class Player(pygame.sprite.Sprite):
         
     def move(self):
         self.rect.y += self.movement_direction * self.movement_speed * dt
+        
+        self.rect.top = max(self.rect.y, 0)
+        self.rect.bottom = min(self.rect.bottom, SCREEN_H)
     
     def collide_with_obstacles(self):
         if pygame.sprite.spritecollide(self, obstacles, True):
