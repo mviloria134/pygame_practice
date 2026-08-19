@@ -35,6 +35,9 @@ def load_image_from_file(path:str, scale_to_size:tuple[int,int]|None=None, scale
         
     return image
 
+# util classes
+# class 
+
 # entities
 class Player(pygame.sprite.Sprite):
     def __init__(self, *groups):
@@ -159,18 +162,41 @@ class ObstacleSpawner(pygame.sprite.Group):
         self.spawn_cooldown_max_seconds = 0.8
         self.spawn_timer = 0
         
+        self.wave_goal = 0
+        self.set_wave_goal()
+        
+        self.seconds_between_waves = 3
+        self.wave_cooldown_timer = 0
+        
+        self.wave_over = False
+    
+    def set_wave_goal(self):
+        self.wave_goal += 10
+        self.enemies_left = self.wave_goal
         
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         
-        if self.spawn_timer < self.spawn_cooldown_max_seconds:
-            self.spawn_timer += dt
+        if not self.wave_over:
+            if self.spawn_timer < self.spawn_cooldown_max_seconds:
+                self.spawn_timer += dt
+            else:
+                self.spawn_timer = random.uniform(0,self.spawn_cooldown_max_seconds)
+                self.spawn()
         else:
-            self.spawn_timer = random.uniform(0,self.spawn_cooldown_max_seconds)
-            self.spawn()
+            if self.wave_cooldown_timer < self.seconds_between_waves:
+                self.wave_cooldown_timer += dt
+            else:
+                self.wave_cooldown_timer = 0
+                self.wave_over = False
+                self.set_wave_goal()
         
     def spawn(self):
         self.add(Obstacle())
+        
+    def end_wave(self):
+        self.wave_over = True
+        self.empty()
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, *groups, pos:tuple[int,int]):
@@ -186,6 +212,10 @@ class Bullet(pygame.sprite.Sprite):
     
     def hit_obstacle(self):
         if pygame.sprite.spritecollide(self, obstacles, True):
+            obstacles.enemies_left -= 1
+            
+            if obstacles.enemies_left == 0:
+                obstacles.end_wave()
             self.kill()
     
     def update(self):
@@ -235,6 +265,21 @@ class Scene:
         for bg in self.bgs:
             bg.display()
 
+class UIDisplay:
+    font = pygame.font.SysFont('Multitype Pixel', 30)
+    
+    def __init__(self, label, value, pos):
+        self.label = label
+        self.value = value
+        
+        self.image = self.font.render(f'{self.label} {self.value}', False, "white")
+        self.pos = pos
+        
+    def update(self, new_value):
+        self.image = self.font.render(f'{self.label} {new_value}', False, "white")
+        
+    def draw(self):
+        screen.blit(self.image, self.pos)
 
 # initialize sprite groups
 player_spawner = PlayerSpawner()
@@ -247,6 +292,8 @@ in_game_fg = ScrollingBackground(background_img_path='bg cloudiness.png', speed=
 in_game_scene = Scene()
 in_game_scene.bgs.append(in_game_bg)
 in_game_scene.bgs.append(in_game_fg)
+
+kills_to_next_wave_display = UIDisplay(label="Kills to Next Wave: ", value=obstacles.enemies_left, pos=(0,0))
 
 # switch game states
 def start_game():
@@ -278,6 +325,7 @@ while is_running:
         
         # update UI
         in_game_scene.update()
+        kills_to_next_wave_display.update(obstacles.enemies_left)
         
         # draw
         screen.fill((0,0,50))
@@ -285,6 +333,7 @@ while is_running:
         player_spawner.draw(screen)
         obstacles.draw(screen)
         bullets.draw(screen)
+        kills_to_next_wave_display.draw()
         
     pygame.display.flip()
     dt = clock.tick(framerate) / 1000
