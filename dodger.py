@@ -1,6 +1,7 @@
-import pygame
 import random
 from enum import Enum
+
+import pygame
 
 pygame.init()
 
@@ -25,7 +26,7 @@ is_running = True
 START_GAME = pygame.event.custom_type()
 
 # helper functions
-def load_image_from_file(path:str, scale_to_size:tuple[int,int]=None, scale_by_factor:float=None) -> pygame.surface.Surface:
+def load_image_from_file(path:str, scale_to_size:tuple[int,int]|None=None, scale_by_factor:float|None=None) -> pygame.surface.Surface:
     image = pygame.image.load(path).convert_alpha()
     if scale_to_size:
         image = pygame.transform.scale(image, scale_to_size)
@@ -104,7 +105,7 @@ class PlayerSpawner(pygame.sprite.GroupSingle):
         self.add(Player())
         
 class Obstacle(pygame.sprite.Sprite):
-    _cache = {}
+    _cache = {}  # noqa: RUF012
     
     # rotation caching code from https://bugnet.io/blog/pygame-performance-tips-for-indie-developers
     def __init__(self, *groups):
@@ -119,7 +120,7 @@ class Obstacle(pygame.sprite.Sprite):
         if size not in self._cache:
             self._cache[size] = [
                 pygame.transform.rotate(self.image, angle)
-                for angle in range(0, 360)
+                for angle in range(360)
             ]
             
         self.rotations = self._cache[size]
@@ -265,9 +266,9 @@ while is_running:
         if event.type == START_GAME:
             game_state = GameState.PLAYING
             start_game()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_k:
-                player_spawner.empty()
+        # if event.type == pygame.KEYDOWN:
+        #     if event.key == pygame.K_k:
+        #         player_spawner.empty()
     
     if game_state == GameState.PLAYING:
         # update entities
