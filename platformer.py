@@ -1,5 +1,6 @@
-import pygame
 import random
+
+import pygame
 
 # window settings
 SCREEN_W = 1200
@@ -59,7 +60,7 @@ class PlatformCollider:
 class Player(pygame.sprite.Sprite, PlatformCollider):
     def __init__(self, *groups, pos:tuple=None):
         super().__init__(*groups)
-        self.posx, self.posy = map(lambda n: n//2, screen.get_size()) if pos is None else pos
+        self.posx, self.posy = (n//2 for n in screen.get_size()) if pos is None else pos
         self.velx = 0
         self.top_speed = 800
         self.accelx = 0
