@@ -181,23 +181,26 @@ class ObstacleSpawner(pygame.sprite.Group):
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         
-        if not self.wave_over:
-            if self.spawn_timer < self.spawn_cooldown_max_seconds:
-                self.spawn_timer += dt
-            else:
-                self.spawn_timer = random.uniform(0,self.spawn_cooldown_max_seconds)
-                self.spawn()
+        if self.wave_over:
+            self.go_to_next_wave()
         else:
-            if self.wave_cooldown_timer < self.seconds_between_waves:
-                self.wave_cooldown_timer += dt
-            else:
-                self.wave_cooldown_timer = 0
-                self.wave_over = False
-                self.set_wave_goal()
+            self.spawn()
         
     def spawn(self):
-        self.add(Obstacle())
+        if self.spawn_timer < self.spawn_cooldown_max_seconds:
+            self.spawn_timer += dt
+        else:
+            self.spawn_timer = random.uniform(0,self.spawn_cooldown_max_seconds)
+            obstacles.add(Obstacle())
         
+    def go_to_next_wave(self):
+        if self.wave_cooldown_timer < self.seconds_between_waves:
+            self.wave_cooldown_timer += dt
+        else:
+            self.wave_cooldown_timer = 0
+            self.wave_over = False
+            self.set_wave_goal()
+    
     def end_wave(self):
         self.wave_over = True
         self.empty()
